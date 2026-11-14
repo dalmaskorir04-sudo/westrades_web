@@ -30,7 +30,6 @@
   }
   .hidden { display: none !important; }
 
-  /* Centered Portal Gate (Yesterday's Layout) */
   #gate {
     min-height: 100dvh;
     width: 100%;
@@ -119,6 +118,20 @@
     outline: none;
   }
   input:focus, select:focus { border-color: var(--blue); }
+  .forgot-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+  }
   .btn {
     width: 100%;
     padding: 14px 16px;
@@ -150,7 +163,6 @@
   .msg.err { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
   .msg.ok { background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.4); color: #6ee7b7; }
 
-  /* Centered Main Dashboard */
   #app {
     width: 100%;
     max-width: 640px;
@@ -265,14 +277,14 @@
     <p class="portal-sub">Institutional R_100 Algorithmic Terminal &amp; Zero-Custody Deriv Execution</p>
 
     <div class="auth-toggle">
-      <button type="button" class="toggle-btn active" id="tabLoginBtn" onclick="window.authMode='login';document.getElementById('regFields').classList.add('hidden');this.classList.add('active');document.getElementById('tabRegBtn').classList.remove('active');document.getElementById('authSubmitBtn').textContent='Unlock Terminal';">PIN Unlock</button>
-      <button type="button" class="toggle-btn" id="tabRegBtn" onclick="window.authMode='register';document.getElementById('regFields').classList.remove('hidden');this.classList.add('active');document.getElementById('tabLoginBtn').classList.remove('active');document.getElementById('authSubmitBtn').textContent='Create Account';">Create Account</button>
+      <button type="button" class="toggle-btn active" id="tabLoginBtn" onclick="setGateMode('login')">PIN Unlock</button>
+      <button type="button" class="toggle-btn" id="tabRegBtn" onclick="setGateMode('register')">Create Account</button>
     </div>
 
     <div class="form-group">
       <div id="regFields" class="hidden">
         <label for="regName">Full Name</label>
-        <input id="regName" type="text" placeholder="Dalmas Korir" />
+        <input id="regName" type="text" placeholder="John Doe" />
 
         <label for="regTier">Account Tier</label>
         <select id="regTier">
@@ -282,12 +294,23 @@
       </div>
 
       <label for="authEmail">Email Address</label>
-      <input id="authEmail" type="email" placeholder="you@gmail.com" />
+      <input id="authEmail" type="email" placeholder="john.doe@gmail.com" />
 
-      <label for="authPin">6-Digit Security PIN</label>
-      <input id="authPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" />
+      <div id="pinRow">
+        <label for="authPin" id="pinLabel">6-Digit Security PIN</label>
+        <input id="authPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" />
+      </div>
 
-      <button type="button" class="btn btn-blue" id="authSubmitBtn" onclick="submitAuth()">Unlock Terminal</button>
+      <div id="resetPhoneRow" class="hidden">
+        <label for="resetPhone">Registered M-Pesa Phone (Verification)</label>
+        <input id="resetPhone" type="tel" placeholder="0712345678" />
+      </div>
+
+      <div class="forgot-row" id="forgotRow">
+        <button type="button" class="link-btn" onclick="setGateMode('forgot')">Forgot PIN?</button>
+      </div>
+
+      <button type="button" class="btn btn-blue" id="authSubmitBtn" onclick="handleGateAction()">Unlock Terminal</button>
       <div id="authMsg" class="msg hidden"></div>
     </div>
 
@@ -323,6 +346,3 @@
       <div class="stat">
         <div class="stat-lbl">Balance</div>
         <div class="stat-val" id="valBal">$10,000.00</div>
-        <button type="button" id="resetDemoBtn" onclick="resetDemo()" style="background:none;border:none;color:var(--blue);font-size:11px;margin-top:3px;cursor:pointer;text-decoration:underline;">Reset $10K</button>
-      </div>
-      <div class="stat">
