@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>westrades.pro | Institutional R_100 &amp; M-Pesa Terminal</title>
+<title>westrades.pro | R_100 Candlestick &amp; M-Pesa Terminal</title>
 <style>
   :root {
     --bg: #060911; --card: #0f1624; --border: #22304a;
@@ -15,43 +15,39 @@
     margin: 0; padding: 0; width: 100%; min-height: 100dvh;
     background: radial-gradient(circle at top, #13213c 0%, #060911 70%);
     color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 16px;
   }
   .hidden { display: none !important; }
-  #gate { min-height: 100dvh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 20px 14px; }
-  .portal-card { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 26px 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.65); text-align: center; }
-  .emblem { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 15px; background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(245,158,11,0.22)); border: 1px solid rgba(245,158,11,0.45); display: flex; align-items: center; justify-content: center; font-size: 23px; }
-  .portal-title { font-size: 22px; font-weight: 900; letter-spacing: 0.5px; margin: 0 0 6px; }
+  #gate { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 18px 14px; }
+  .portal-card { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.65); text-align: center; }
+  .emblem { width: 50px; height: 50px; margin: 0 auto 10px; border-radius: 14px; background: rgba(59,130,246,0.18); border: 1px solid rgba(245,158,11,0.45); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .portal-title { font-size: 22px; font-weight: 900; margin: 0 0 4px; }
   .portal-title span { color: var(--gold); }
-  .portal-sub { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0 0 16px; }
-  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg); padding: 5px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 14px; }
-  .toggle-btn { padding: 10px 8px; border: none; border-radius: 9px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 700; cursor: pointer; }
+  .portal-sub { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg); padding: 5px; border-radius: 11px; border: 1px solid var(--border); margin-bottom: 12px; }
+  .toggle-btn { padding: 9px 6px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
   .toggle-btn.active { background: var(--blue); color: #fff; }
   .form-group { text-align: left; }
-  label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin: 11px 0 5px; }
-  input, select { width: 100%; padding: 12px 13px; border-radius: 11px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
-  input:focus, select:focus { border-color: var(--blue); }
-  .forgot-row { display: flex; justify-content: flex-end; margin-top: 8px; }
-  .link-btn { background: none; border: none; color: var(--blue); font-size: 13px; font-weight: 700; cursor: pointer; padding: 0; }
-  .btn { width: 100%; padding: 13px 14px; margin-top: 14px; border: none; border-radius: 11px; font-size: 14px; font-weight: 800; cursor: pointer; }
-  .btn-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
-  .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #042f1e; }
-  .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
-  .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; }
-  .portal-foot { margin-top: 14px; font-size: 11px; color: var(--muted); }
-  .msg { margin-top: 11px; padding: 10px 12px; border-radius: 10px; font-size: 12px; text-align: left; background: rgba(59,130,246,0.14); border: 1px solid rgba(59,130,246,0.35); }
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin: 10px 0 4px; }
+  input { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
+  input:focus { border-color: var(--blue); }
+  .btn { width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; }
+  .btn-blue { background: #2563eb; color: #fff; }
+  .btn-green { background: #10b981; color: #042f1e; }
+  .btn-red { background: #ef4444; color: #fff; }
+  .btn-gold { background: #f59e0b; color: #111827; }
+  .msg { margin-top: 10px; padding: 9px 11px; border-radius: 9px; font-size: 12px; text-align: left; background: rgba(59,130,246,0.14); border: 1px solid rgba(59,130,246,0.35); }
   .msg.err { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
   .msg.ok { background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.4); color: #6ee7b7; }
-  #app { width: 100%; max-width: 540px; margin: 0 auto; padding: 12px 10px 76px; }
-  .dash-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
-  .top-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 10px 0; }
-  .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 11px; padding: 9px 6px; text-align: center; }
+  #app { width: 100%; max-width: 520px; margin: 0 auto; padding: 10px 10px 72px; }
+  .dash-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 13px; }
+  .top-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 9px 0; }
+  .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 5px; text-align: center; }
   .stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
-  .stat-val { font-size: 16px; font-weight: 900; margin-top: 3px; }
+  .stat-val { font-size: 15px; font-weight: 900; margin-top: 2px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  canvas { width: 100%; height: 190px; background: var(--bg); display: block; }
-  .row-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; font-size: 12px; }
+  canvas { width: 100%; height: 185px; background: var(--bg); display: block; }
+  .row-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; margin-bottom: 6px; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -60,7 +56,7 @@
   <div class="portal-card">
     <div class="emblem">🔐</div>
     <h1 class="portal-title">westrades<span>.pro</span></h1>
-    <p class="portal-sub">Institutional R_100 Candlestick Terminal &amp; Instant M-Pesa Cashier</p>
+    <p class="portal-sub">R_100 Candlestick Terminal &amp; Instant M-Pesa Cashier</p>
 
     <div class="auth-toggle">
       <button type="button" class="toggle-btn active" id="tabLoginBtn" onclick="setGateMode('login')">PIN Unlock</button>
@@ -70,76 +66,138 @@
     <div class="form-group">
       <div id="regFields" class="hidden">
         <label for="regName">Full Name</label>
-        <input id="regName" type="text" placeholder="John Doe" />
+        <input id="regName" type="text" placeholder="Dalmas Korir" />
         <label for="regPhone">M-Pesa Phone Number</label>
         <input id="regPhone" type="tel" placeholder="0712345678" />
       </div>
 
       <label for="authEmail">Email Address</label>
-      <input id="authEmail" type="email" placeholder="john.doe@gmail.com" />
+      <input id="authEmail" type="email" placeholder="you@gmail.com" />
 
       <div id="pinRow">
-        <label for="authPin" id="pinLabel">6-Digit Security PIN</label>
+        <label for="authPin">6-Digit Security PIN</label>
         <input id="authPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" />
       </div>
 
-      <div id="resetPhoneRow" class="hidden">
-        <label for="resetPhone">Registered M-Pesa Phone (Verification)</label>
-        <input id="resetPhone" type="tel" placeholder="0712345678" />
-      </div>
-
-      <div class="forgot-row" id="forgotRow">
-        <button type="button" class="link-btn" onclick="setGateMode('forgot')">Forgot PIN?</button>
+      <div style="text-align:right;margin-top:6px;" id="forgotRow">
+        <button type="button" onclick="setGateMode('forgot')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;">Forgot PIN?</button>
       </div>
 
       <button type="button" class="btn btn-blue" id="authSubmitBtn" onclick="handleGateAction()">Unlock Terminal</button>
       <div id="authMsg" class="msg hidden"></div>
     </div>
-    <div class="portal-foot">Protected by TLS Encryption &amp; Cloud Session Lock</div>
   </div>
 </div>
 
 <div id="app" class="hidden">
   <div class="dash-card">
-    <div class="top-row" style="margin-bottom: 10px;">
+    <div class="top-row" style="margin-bottom:8px;">
       <div>
-        <div style="font-size:17px;font-weight:900;">westrades<span style="color:var(--gold);">.pro</span></div>
+        <div style="font-size:16px;font-weight:900;">westrades<span style="color:var(--gold);">.pro</span></div>
         <div style="font-size:11px;color:var(--muted);">VAULT • @<span id="hdrName">trader</span></div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <button type="button" id="btnDemo" onclick="setMode('DEMO')" style="padding:6px 12px;border-radius:8px;border:none;font-weight:800;font-size:12px;background:var(--green);color:#042f1e;cursor:pointer;">DEMO</button>
-        <button type="button" id="btnLive" onclick="setMode('LIVE')" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);font-weight:800;font-size:12px;background:var(--bg);color:var(--muted);cursor:pointer;">REAL</button>
-        <button type="button" onclick="logoutUser()" title="Lock Vault" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--gold);cursor:pointer;">🔒</button>
+      <div style="display:flex;gap:5px;">
+        <button type="button" id="btnDemo" onclick="setMode('DEMO')" style="padding:6px 11px;border-radius:7px;border:none;font-weight:800;font-size:11px;background:var(--green);color:#042f1e;cursor:pointer;">DEMO</button>
+        <button type="button" id="btnLive" onclick="setMode('LIVE')" style="padding:6px 11px;border-radius:7px;border:1px solid var(--border);font-weight:800;font-size:11px;background:var(--bg);color:var(--muted);cursor:pointer;">REAL</button>
+        <button type="button" onclick="logoutUser()" style="padding:6px 9px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--gold);cursor:pointer;">🔒</button>
       </div>
     </div>
 
     <div id="tabTerm">
       <div class="stats" style="margin-top:0;">
-        <div class="stat"><div class="stat-lbl">VOLATILITY 100</div><div class="stat-val" id="valSpot">4134.11</div></div>
+        <div class="stat"><div class="stat-lbl">R_100 SPOT</div><div class="stat-val" id="valSpot">4134.11</div></div>
         <div class="stat"><div class="stat-lbl">RSI-7 PULSE</div><div class="stat-val" id="valRsi" style="color:var(--gold);">50.0</div></div>
         <div class="stat"><div class="stat-lbl">SESSION P/L</div><div class="stat-val" id="valPnl" style="color:var(--green);">+$0.00</div></div>
       </div>
 
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:9px;margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:5px;">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:8px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;margin-bottom:4px;">
           <span style="color:var(--muted);">5-TICK CANDLES • EMA-10: <span id="valEma" style="color:var(--text);">4134.11</span></span>
           <span id="valSig" style="color:var(--blue);">SCANNING MARKET</span>
         </div>
-        <canvas id="chartCanvas" width="600" height="200"></canvas>
+        <canvas id="chartCanvas" width="600" height="190"></canvas>
       </div>
 
-      <div class="stats" style="margin:0 0 10px;">
+      <div class="stats" style="margin:0 0 8px;">
         <div class="stat"><div class="stat-lbl">BALANCE</div><div class="stat-val" id="valBal">$10,000.00</div></div>
-        <div class="stat"><div class="stat-lbl">FLAT STAKE ($)</div><input id="tradeStake" type="number" value="10.00" min="1" step="1" oninput="updateTargetUI()" style="padding:4px;text-align:center;font-weight:800;font-size:15px;color:var(--blue);margin-top:2px;border-radius:8px;" /></div>
-        <div class="stat"><div class="stat-lbl">1:2 TARGET</div><div class="stat-val" id="valTarget" style="color:var(--green);">+$19.00</div></div>
+        <div class="stat"><div class="stat-lbl">STAKE ($)</div><input id="tradeStake" type="number" value="10" min="1" oninput="updateTargetUI()" style="padding:3px;text-align:center;font-weight:800;font-size:14px;color:var(--blue);margin-top:2px;border-radius:6px;" /></div>
+        <div class="stat"><div class="stat-lbl">PAYOUT</div><div class="stat-val" id="valTarget" style="color:var(--green);">+$19.50</div></div>
       </div>
 
-      <div class="grid-2" style="margin-bottom:10px;">
-        <div class="stat" style="padding:8px;"><div class="stat-lbl" style="color:var(--green);">🎯 TAKE PROFIT ($)</div><input id="inpTp" type="number" value="25.00" min="1" step="1" style="padding:5px;text-align:center;font-weight:800;font-size:15px;color:var(--green);margin-top:4px;border-radius:8px;" /></div>
+      <div class="grid-2" style="margin-bottom:8px;">
+        <div class="stat" style="padding:6px;"><div class="stat-lbl" style="color:var(--green);">🎯 TAKE PROFIT ($)</div><input id="inpTp" type="number" value="25" min="1" style="padding:4px;text-align:center;font-weight:800;font-size:14px;color:var(--green);margin-top:3px;border-radius:6px;" /></div>
+        <div class="stat" style="padding:6px;"><div class="stat-lbl" style="color:var(--red);">🛑 STOP LOSS ($)</div><input id="inpSl" type="number" value="15" min="1" style="padding:4px;text-align:center;font-weight:800;font-size:14px;color:var(--red);margin-top:3px;border-radius:6px;" /></div>
+      </div>
+
+      <button type="button" id="btnScanner" onclick="toggleScanner()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--green);background:rgba(16,185,129,0.12);color:var(--green);font-weight:800;font-size:12px;cursor:pointer;">🤖 START AI CANDLE SCANNER (FREE)</button>
+
+      <div class="grid-2" style="margin-top:8px;">
+        <button type="button" class="btn btn-green" style="margin-top:0;" onclick="placeTrade('RISE')">📈 RISE (5 TICKS)</button>
+        <button type="button" class="btn btn-red" style="margin-top:0;" onclick="placeTrade('FALL')">📉 FALL (5 TICKS)</button>
+      </div>
+      <div id="tradeMsg" class="msg hidden" style="text-align:center;font-weight:700;"></div>
+    </div>
+
+    <div id="tabCashier" class="hidden">
+      <div class="top-row" style="margin-bottom:10px;">
+        <div>
+          <div style="font-weight:900;font-size:15px;">M-Pesa Express Cashier</div>
+          <div style="font-size:11px;color:var(--muted);">1 USD = 129 KES</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--muted);">REAL WALLET</div>
+          <div id="cashierBal" style="font-weight:900;font-size:15px;color:var(--green);">$0.00</div>
+        </div>
+      </div>
+
+      <div class="auth-toggle">
+        <button type="button" class="toggle-btn active" id="btnCashDep" onclick="setCashierMode('deposit')">⬇ Deposit</button>
+        <button type="button" class="toggle-btn" id="btnCashWit" onclick="setCashierMode('withdraw')">⬆ Withdraw</button>
+      </div>
+
+      <label for="mpesaPhone">M-Pesa Phone Number</label>
+      <input id="mpesaPhone" type="tel" placeholder="0712345678" />
+
+      <div id="boxDeposit">
+        <label for="depKes">Deposit Amount (KES)</label>
+        <input id="depKes" type="number" value="1290" min="100" oninput="calcKesToUsd()" />
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Receive: <strong id="depUsdPreview" style="color:var(--green);">$10.00 USD</strong></div>
+        <button type="button" class="btn btn-green" onclick="processDeposit()">📲 Deposit via M-Pesa</button>
+      </div>
+
+      <div id="boxWithdraw" class="hidden">
+        <label for="witUsd">Withdraw Amount (USD)</label>
+        <input id="witUsd" type="number" value="10" min="2" oninput="calcUsdToKes()" />
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Receive: <strong id="witKesPreview" style="color:var(--gold);">KES 1,290</strong></div>
+        <button type="button" class="btn btn-gold" onclick="processWithdraw()">💸 Withdraw to M-Pesa</button>
+      </div>
+
+      <div id="cashierMsg" class="msg hidden"></div>
+
+      <div style="font-weight:800;font-size:11px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;">Ledger History</div>
+      <div id="histList"><div class="row-item" style="color:var(--muted);justify-content:center;">No transactions or trades yet.</div></div>
+    </div>
+
+    <div id="tabApi" class="hidden">
+      <div style="font-weight:800;font-size:15px;margin-bottom:4px;">Deriv API &amp; Security Vault</div>
+      <p style="font-size:12px;color:var(--muted);margin-top:0;">Link your Deriv API token for REAL account execution.</p>
+      <label for="derivToken">Deriv API Token</label>
+      <input id="derivToken" type="password" placeholder="Paste Deriv API token..." />
+      <button type="button" class="btn btn-blue" onclick="connectDerivApi()">Connect Real Account</button>
+      <div id="apiMsg" class="msg hidden"></div>
+    </div>
+  </div>
+
+  <div style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,1fr);padding:10px 0;z-index:50;">
+    <button type="button" id="navTerm" onclick="showTab('term')" style="background:none;border:none;color:var(--blue);font-weight:800;font-size:12px;cursor:pointer;">📊 Terminal</button>
+    <button type="button" id="navCashier" onclick="showTab('cashier')" style="background:none;border:none;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;">💳 Cashier</button>
+    <button type="button" id="navApi" onclick="showTab('api')" style="background:none;border:none;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;">⚙️ API &amp; Vault</button>
+  </div>
+</div>
 <script>
-  let gateMode = 'login', tradeMode = 'DEMO', demoBalance = 10000.00, liveBalance = 0.00;
-  let sessionPnl = 0.00, derivToken = '', currentUser = null, scannerActive = false, tradeInProgress = false;
-  const KES_RATE = 129, USERS_KEY = 'westrades_users_v1', SESSION_KEY = 'westrades_session_v1';
+  let gateMode = 'login', tradeMode = 'DEMO', demoBalance = 10000, liveBalance = 0;
+  let sessionPnl = 0, derivToken = '', currentUser = null, scannerActive = false, tradeInProgress = false;
+  const KES_RATE = 129, USERS_KEY = 'westrades_users_v2', SESSION_KEY = 'westrades_session_v2';
 
   let currentPrice = 4134.11, tickBuffer = [4134.11], ledger = [];
   let candles = [
@@ -151,8 +209,8 @@
 
   function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch (e) { return {}; } }
   function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-  function showMsg(id, txt, type) { const el = document.getElementById(id); el.textContent = txt; el.className = 'msg ' + (type || ''); el.classList.remove('hidden'); }
-  function hideMsg(id) { document.getElementById(id).classList.add('hidden'); }
+  function showMsg(id, txt, type) { const el = document.getElementById(id); if (!el) return; el.textContent = txt; el.className = 'msg ' + (type || ''); el.classList.remove('hidden'); }
+  function hideMsg(id) { const el = document.getElementById(id); if (el) el.classList.add('hidden'); }
 
   function setGateMode(mode) {
     gateMode = mode; hideMsg('authMsg');
@@ -161,31 +219,29 @@
     document.getElementById('tabRegBtn').classList.toggle('active', isReg);
     document.getElementById('regFields').classList.toggle('hidden', !isReg);
     document.getElementById('pinRow').classList.toggle('hidden', isForgot);
-    document.getElementById('resetPhoneRow').classList.toggle('hidden', !isForgot);
     document.getElementById('forgotRow').classList.toggle('hidden', isReg || isForgot);
-    document.getElementById('authSubmitBtn').textContent = isReg ? 'Create Account' : (isForgot ? 'Verify Phone & Reset PIN' : 'Unlock Terminal');
+    document.getElementById('authSubmitBtn').textContent = isReg ? 'Create Account' : (isForgot ? 'Reset PIN to 123456' : 'Unlock Terminal');
   }
 
   function handleGateAction() {
     const email = document.getElementById('authEmail').value.trim().toLowerCase();
     const pin = document.getElementById('authPin').value.trim();
     const users = getUsers();
-    if (!email || !email.includes('@')) return showMsg('authMsg', 'Please enter a valid email address.', 'err');
+    if (!email || !email.includes('@')) return showMsg('authMsg', 'Enter a valid email address.', 'err');
 
     if (gateMode === 'register') {
       const name = document.getElementById('regName').value.trim();
       const phone = document.getElementById('regPhone').value.trim();
-      if (!name) return showMsg('authMsg', 'Please enter your full name.', 'err');
-      if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'Security PIN must be exactly 6 digits.', 'err');
-      if (users[email]) return showMsg('authMsg', 'Account exists. Switch to PIN Unlock.', 'err');
+      if (!name) return showMsg('authMsg', 'Enter your full name.', 'err');
+      if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'PIN must be exactly 6 digits.', 'err');
+      if (users[email]) return showMsg('authMsg', 'Email already exists. Switch to PIN Unlock.', 'err');
       users[email] = { name, email, phone, pin, demoBalance: 10000, liveBalance: 0 };
       saveUsers(users);
-      showMsg('authMsg', 'Account created! Unlocking...', 'ok');
-      setTimeout(() => launchApp(users[email]), 500);
+      launchApp(users[email]);
     } else if (gateMode === 'login') {
-      if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'Enter your 6-digit numeric PIN.', 'err');
+      if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'Enter your 6-digit PIN.', 'err');
       const user = users[email];
-      if (!user) return showMsg('authMsg', 'Account not found. Tap Create Account.', 'err');
+      if (!user) return showMsg('authMsg', 'Account not found. Tap Create Account first.', 'err');
       if (user.pin !== pin) return showMsg('authMsg', 'Incorrect 6-digit PIN.', 'err');
       launchApp(user);
     } else if (gateMode === 'forgot') {
@@ -193,11 +249,11 @@
       if (!user) return showMsg('authMsg', 'No account found with that email.', 'err');
       user.pin = '123456'; saveUsers(users);
       showMsg('authMsg', 'PIN reset to 123456. Sign in now.', 'ok');
-      setTimeout(() => setGateMode('login'), 1500);
+      setTimeout(() => setGateMode('login'), 1200);
     }
   }
 
-    function persistBalances() {
+  function persistBalances() {
     if (!currentUser) return;
     const users = getUsers();
     if (users[currentUser.email]) {
@@ -214,9 +270,8 @@
     localStorage.setItem(SESSION_KEY, user.email);
     const first = (user.name || 'trader').trim().split(' ').shift();
     document.getElementById('hdrName').textContent = first.toLowerCase();
-    if (user.phone) {
-      document.getElementById('mpesaPhone').value = user.phone;
-    }
+    const phoneEl = document.getElementById('mpesaPhone');
+    if (phoneEl && user.phone) phoneEl.value = user.phone;
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     updateUI();
@@ -224,14 +279,10 @@
   }
 
   function logoutUser() {
-    scannerActive = false;
-    localStorage.removeItem(SESSION_KEY);
-    currentUser = null;
+    scannerActive = false; localStorage.removeItem(SESSION_KEY); currentUser = null;
     document.getElementById('authPin').value = '';
     document.getElementById('app').classList.add('hidden');
     document.getElementById('gate').classList.remove('hidden');
-  }
-
   }
 
   function showTab(tab) {
@@ -246,7 +297,7 @@
   function setMode(mode) {
     if (mode === 'LIVE' && !derivToken && liveBalance <= 0) {
       showTab('cashier');
-      return showMsg('cashierMsg', 'Deposit via M-Pesa or connect your Deriv API token to fund your REAL wallet.', '');
+      return showMsg('cashierMsg', 'Deposit via M-Pesa or link Deriv API to fund REAL wallet.', '');
     }
     tradeMode = mode; const isDemo = mode === 'DEMO';
     document.getElementById('btnDemo').style.background = isDemo ? 'var(--green)' : 'var(--bg)';
@@ -258,7 +309,7 @@
 
   function updateTargetUI() {
     const stake = parseFloat(document.getElementById('tradeStake').value) || 0;
-    document.getElementById('valTarget').textContent = '+$' + (stake * 1.9).toFixed(2);
+    document.getElementById('valTarget').textContent = '+$' + (stake * 1.95).toFixed(2);
   }
 
   function updateUI() {
@@ -286,13 +337,13 @@
     if (!/^(07|01|\+254)\d{8,9}$/.test(phone)) return showMsg('cashierMsg', 'Enter a valid Safaricom M-Pesa phone number.', 'err');
     if (isNaN(kes) || kes < 100) return showMsg('cashierMsg', 'Minimum deposit is KES 100.', 'err');
     const usd = +(kes / KES_RATE).toFixed(2);
-    showMsg('cashierMsg', `📲 STK Push sent to ${phone} for KES ${kes.toLocaleString()}... Waiting for PIN...`, '');
+    showMsg('cashierMsg', `📲 STK Push sent to ${phone} for KES ${kes.toLocaleString()}...`, '');
     setTimeout(() => {
       liveBalance = +(liveBalance + usd).toFixed(2); persistBalances();
       ledger.unshift({ label: `M-Pesa Deposit (${phone})`, sub: new Date().toLocaleTimeString(), amount: usd });
       renderLedger(); updateUI();
-      showMsg('cashierMsg', `✅ Deposit Confirmed! +$${usd.toFixed(2)} credited to REAL wallet.`, 'ok');
-    }, 2200);
+      showMsg('cashierMsg', `✅ Confirmed! +$${usd.toFixed(2)} credited to REAL wallet.`, 'ok');
+    }, 2000);
   }
 
   function processWithdraw() {
@@ -301,7 +352,7 @@
     if (isNaN(usd) || usd < 2) return showMsg('cashierMsg', 'Minimum withdrawal is $2.00 USD.', 'err');
     if (usd > liveBalance) return showMsg('cashierMsg', 'Insufficient REAL wallet balance.', 'err');
     const kes = Math.round(usd * KES_RATE);
-    showMsg('cashierMsg', `⏳ Sending M-Pesa B2C payout of KES ${kes.toLocaleString()} to ${phone}...`, '');
+    showMsg('cashierMsg', `⏳ Sending KES ${kes.toLocaleString()} to ${phone}...`, '');
     setTimeout(() => {
       liveBalance = +(liveBalance - usd).toFixed(2); persistBalances();
       ledger.unshift({ label: `M-Pesa Withdrawal (${phone})`, sub: new Date().toLocaleTimeString(), amount: -usd });
@@ -318,7 +369,7 @@
       showMsg('tradeMsg', '🤖 AI SCANNER ACTIVE • WATCHING 5-TICK RSI-7 & EMA-10...', '');
     } else {
       btn.textContent = '🤖 START AI CANDLE SCANNER (FREE)'; btn.style.borderColor = 'var(--green)'; btn.style.background = 'rgba(16,185,129,0.12)'; btn.style.color = 'var(--green)';
-      showMsg('tradeMsg', 'Scanner paused manually.', '');
+      showMsg('tradeMsg', 'Scanner paused.', '');
     }
   }
 
@@ -330,7 +381,7 @@
     if (stake > bal) { if (scannerActive) toggleScanner(); return showMsg('tradeMsg', 'Insufficient ' + tradeMode + ' balance.', 'err'); }
 
     tradeInProgress = true; const entry = currentPrice;
-    showMsg('tradeMsg', `${isAuto ? '🤖 AI ENTRY' : '⚡ MANUAL'}: ${direction} ($${stake.toFixed(2)}) @ ${entry.toFixed(2)} (5 Ticks)...`, '');
+    showMsg('tradeMsg', `${isAuto ? '🤖 AI' : '⚡ MANUAL'}: ${direction} ($${stake.toFixed(2)}) @ ${entry.toFixed(2)}...`, '');
 
     setTimeout(() => {
       const exit = currentPrice;
@@ -343,15 +394,15 @@
       renderLedger(); updateUI(); tradeInProgress = false;
 
       const tp = parseFloat(document.getElementById('inpTp').value) || 9999, sl = parseFloat(document.getElementById('inpSl').value) || 9999;
-      if (scannerActive && sessionPnl >= tp) { toggleScanner(); return showMsg('tradeMsg', `🎯 TAKE PROFIT HIT (+$${sessionPnl.toFixed(2)})! SCANNER STOPPED.`, 'ok'); }
-      if (scannerActive && sessionPnl <= -sl) { toggleScanner(); return showMsg('tradeMsg', `🛑 STOP LOSS HIT (-$${Math.abs(sessionPnl).toFixed(2)}). SCANNER STOPPED.`, 'err'); }
+      if (scannerActive && sessionPnl >= tp) { toggleScanner(); return showMsg('tradeMsg', `🎯 TAKE PROFIT HIT (+$${sessionPnl.toFixed(2)})!`, 'ok'); }
+      if (scannerActive && sessionPnl <= -sl) { toggleScanner(); return showMsg('tradeMsg', `🛑 STOP LOSS HIT (-$${Math.abs(sessionPnl).toFixed(2)}).`, 'err'); }
       if (won) showMsg('tradeMsg', `✅ 5-TICK WIN (+$${profit.toFixed(2)})`, 'ok'); else showMsg('tradeMsg', `❌ 5-TICK LOSS (-$${stake.toFixed(2)})`, 'err');
     }, 3500);
   }
 
   function renderLedger() {
     const list = document.getElementById('histList'); if (!ledger.length) return;
-    list.innerHTML = ledger.map(t => `<div class="row-item"><div><strong>${t.label}</strong> <span style="color:var(--muted);font-size:11px;">(${t.sub})</span></div><div style="font-weight:800;color:${t.amount >= 0 ? 'var(--green)' : 'var(--red)'};">${t.amount >= 0 ? '+$' + t.amount.toFixed(2) : '-$' + Math.abs(t.amount).toFixed(2)}</div></div>`).join('');
+    list.innerHTML = ledger.map(t => `<div class="row-item"><div><strong>${t.label}</strong> <span style="color:var(--muted);font-size:10px;">(${t.sub})</span></div><div style="font-weight:800;color:${t.amount >= 0 ? 'var(--green)' : 'var(--red)'};">${t.amount >= 0 ? '+$' + t.amount.toFixed(2) : '-$' + Math.abs(t.amount).toFixed(2)}</div></div>`).join('');
   }
 
   function connectDerivApi() {
@@ -380,7 +431,7 @@
     const liveCandle = { o: tickBuffer[0], h: Math.max(...tickBuffer), l: Math.min(...tickBuffer), c: tickBuffer[tickBuffer.length - 1] };
     const allCandles = [...candles.slice(-22), liveCandle];
     const maxP = Math.max(...allCandles.map(c => c.h)) + 0.3, minP = Math.min(...allCandles.map(c => c.l)) - 0.3;
-    const range = maxP - minP || 1, toY = p => h - 18 - ((p - minP) / range) * (h - 36);
+    const range = maxP - minP || 1, toY = p => h - 16 - ((p - minP) / range) * (h - 32);
 
     ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
     for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
