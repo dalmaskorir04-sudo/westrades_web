@@ -197,7 +197,7 @@
     }
   }
 
-  function persistBalances() {
+    function persistBalances() {
     if (!currentUser) return;
     const users = getUsers();
     if (users[currentUser.email]) {
@@ -208,21 +208,30 @@
   }
 
   function launchApp(user) {
-    currentUser = user; demoBalance = user.demoBalance ?? 10000; liveBalance = user.liveBalance ?? 0;
+    currentUser = user;
+    demoBalance = user.demoBalance ?? 10000;
+    liveBalance = user.liveBalance ?? 0;
     localStorage.setItem(SESSION_KEY, user.email);
-    document.getElementById('hdrName').textContent = (user.name || 'trader').trim().split(' ').shift().toLowerCase();
-
-    if (user.phone) document.getElementById('mpesaPhone').value = user.phone;
+    const first = (user.name || 'trader').trim().split(' ').shift();
+    document.getElementById('hdrName').textContent = first.toLowerCase();
+    if (user.phone) {
+      document.getElementById('mpesaPhone').value = user.phone;
+    }
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
-    updateUI(); drawCandles();
+    updateUI();
+    drawCandles();
   }
 
   function logoutUser() {
-    scannerActive = false; localStorage.removeItem(SESSION_KEY); currentUser = null;
+    scannerActive = false;
+    localStorage.removeItem(SESSION_KEY);
+    currentUser = null;
     document.getElementById('authPin').value = '';
     document.getElementById('app').classList.add('hidden');
     document.getElementById('gate').classList.remove('hidden');
+  }
+
   }
 
   function showTab(tab) {
