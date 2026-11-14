@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>WESTRADES PRO | R_100 Algorithmic & M-Pesa Terminal</title>
+<style>
+  :root {
+    --bg: #080c12;
+    --card: #101722;
+    --panel: #151e2d;
+    --border: #223047;
+    --text: #f0f6fc;
+    --muted: #8b9bb4;
+    --green: #22c55e;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+  }
+  .hidden { display: none !important; }
+  #gate {
+    min-height: 100dvh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px 12px;
+    background: radial-gradient(circle at top, #132238 0%, #080c12 72%);
+  }
+  .gate-card {
+    width: 100%;
+    max-width: 580px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .brand { font-size: 22px; font-weight: 900; letter-spacing: 0.6px; }
+  .brand span { color: var(--gold); }
+  .badge-ssl {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.35);
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+  .auth-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: var(--bg);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .auth-tab {
+    padding: 12px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .auth-tab.active { background: var(--blue); color: #fff; }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 11px 0 5px;
+  }
+  input, select {
+    width: 100%;
+    padding: 13px 13px;
+    font-size: 16px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--blue); }
+  .btn {
+    width: 100%;
+    padding: 15px 16px;
+    margin-top: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-green { background: var(--green); color: #052e16; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; }
+  .msg {
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: rgba(59,130,246,0.12);
+    border: 1px solid rgba(59,130,246,0.3);
+  }
+  .msg.err { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+  .msg.ok { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.4); color: #86efac; }
+  #app {
+    width: 100%;
+    max-width: 680px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding: 8px 8px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .user-meta { display: flex; flex-direction: column; gap: 2px; }
+  .user-title { font-size: 16px; font-weight: 800; }
+  .tier-pill {
+    display: inline-block;
+    width: fit-content;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(245,158,11,0.16);
+    color: var(--gold);
+    border: 1px solid rgba(245,158,11,0.4);
+  }
+  .tier-pill.pro { background: rgba(34,197,94,0.16); color: var(--green); border-color: rgba(34,197,94,0.4); }
+  .logout-btn {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(239,68,68,0.45);
+    background: rgba(239,68,68,0.14);
+    color: #fca5a5;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .nav-btn {
+    padding: 13px 6px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .nav-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 13px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 10px; }
+  .stat-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 6px; text-align: center; }
+  .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+  .stat-val { font-size: 17px; font-weight: 900; margin-top: 3px; }
+  .reset-link {
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--blue);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .mode-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
+  .mode-btn {
+    padding: 11px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .mode-btn.demo.active { background: rgba(59,130,246,0.2); border-color: var(--blue); color: #93c5fd; }
+  .mode-btn.live.active { background: rgba(245,158,11,0.2); border-color: var(--gold); color: #fcd34d; }
+  .chart-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 10px; margin-bottom: 10px; }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+  .live-price { font-size: 19px; font-weight: 900; color: var(--gold); }
+  canvas { width: 100%; height: 220px; display: block; }
+  .ind-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 10px; font-size: 12px; }
+  .ind-pill { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 6px; text-align: center; font-weight: 700; }
+  .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 10px; }
+  .risk-grid label { margin-top: 2px; font-size: 12px; }
+  .risk-grid input { padding: 11px 10px; font-size: 15px; }
+  .trade-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 6px; }
+  .trade-btn { padding: 16px 8px; border-radius: 12px; border: none; font-size: 16px; font-weight: 900; cursor: pointer; }
+  .status-banner {
+    margin-top: 11px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .list-head { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 800; margin-bottom: 10px; }
+  .filter-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+  .filter-btn {
+    padding: 8px 6px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .filter-btn.active { background: var(--panel); color: var(--text); border-color: var(--blue); }
+  .tx-list { display: flex; flex-direction: column; gap: 8px; }
+  .tx-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 11px 12px;
+    font-size: 13px;
+  }
+  .tx-left { display: flex; flex-direction: column; gap: 3px; }
+  .tx-title { font-weight: 800; font-size: 14px; }
+  .tx-sub { color: var(--muted); font-size: 12px; }
+  .tx-right { font-weight: 900; font-size: 15px; text-align: right; }
+  .won { color: var(--green); }
+  .lost { color: var(--red); }
+  .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .plan-card {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .plan-card.selected { border-color: var(--gold); background: rgba(245,158,11,0.1); }
+  .plan-price { font-size: 19px; font-weight: 900; color: var(--gold); margin: 4px 0; }
+  .idle-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <div class="brand-row">
+      <div class="brand">WESTRADES <span>PRO</span></div>
+      <div class="badge-ssl">🔒 TLS & PIN GATE</div>
+    </div>
+
+    <div class="auth-switch">
+      <button class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">PIN Unlock / Login</button>
+      <button class="auth-tab" id="tabRegBtn" onclick="switchAuthMode('register')">New Account</button>
+    </div>
+
+    <div id="regFields" class="hidden">
+      <label>Full Name</label>
+      <input id="regName" type="text" placeholder="e.g. Dalmas Korir" />
+      <label>Starting Tier</label>
+      <select id="regTier">
