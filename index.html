@@ -3,275 +3,55 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WESTRADES PRO | Institutional R_100 & M-Pesa Terminal</title>
+<title>westrades.pro | Institutional R_100 &amp; M-Pesa Terminal</title>
 <style>
   :root {
-    --bg: #060911;
-    --card: #0f1624;
-    --card-2: #151f32;
-    --border: #22304a;
-    --text: #f8fafc;
-    --muted: #94a3b8;
-    --green: #10b981;
-    --red: #ef4444;
-    --gold: #f59e0b;
-    --blue: #3b82f6;
+    --bg: #060911; --card: #0f1624; --border: #22304a;
+    --text: #f8fafc; --muted: #94a3b8; --green: #10b981;
+    --red: #ef4444; --gold: #f59e0b; --blue: #3b82f6;
   }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    min-height: 100dvh;
+    margin: 0; padding: 0; width: 100%; min-height: 100dvh;
     background: radial-gradient(circle at top, #13213c 0%, #060911 70%);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 16px;
   }
   .hidden { display: none !important; }
-
-  #gate {
-    min-height: 100dvh;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px 14px;
-  }
-  .portal-card {
-    width: 100%;
-    max-width: 440px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 28px 22px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
-    text-align: center;
-  }
-  .emblem {
-    width: 54px;
-    height: 54px;
-    margin: 0 auto 14px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(245,158,11,0.22));
-    border: 1px solid rgba(245,158,11,0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-  }
-  .portal-title {
-    font-size: 23px;
-    font-weight: 900;
-    letter-spacing: 0.6px;
-    margin: 0 0 6px;
-  }
+  #gate { min-height: 100dvh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 20px 14px; }
+  .portal-card { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 26px 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.65); text-align: center; }
+  .emblem { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 15px; background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(245,158,11,0.22)); border: 1px solid rgba(245,158,11,0.45); display: flex; align-items: center; justify-content: center; font-size: 23px; }
+  .portal-title { font-size: 22px; font-weight: 900; letter-spacing: 0.5px; margin: 0 0 6px; }
   .portal-title span { color: var(--gold); }
-  .portal-sub {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.45;
-    margin: 0 0 18px;
-  }
-  .auth-toggle {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    background: var(--bg);
-    padding: 5px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    margin-bottom: 16px;
-  }
-  .toggle-btn {
-    padding: 11px 8px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .toggle-btn.active {
-    background: var(--blue);
-    color: #fff;
-  }
+  .portal-sub { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0 0 16px; }
+  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg); padding: 5px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 14px; }
+  .toggle-btn { padding: 10px 8px; border: none; border-radius: 9px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 700; cursor: pointer; }
+  .toggle-btn.active { background: var(--blue); color: #fff; }
   .form-group { text-align: left; }
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin: 12px 0 6px;
-  }
-  input, select {
-    width: 100%;
-    padding: 13px 14px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 16px;
-    outline: none;
-  }
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin: 11px 0 5px; }
+  input, select { width: 100%; padding: 12px 13px; border-radius: 11px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
   input:focus, select:focus { border-color: var(--blue); }
-  .forgot-row {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 8px;
-  }
-  .link-btn {
-    background: none;
-    border: none;
-    color: var(--blue);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 0;
-  }
-  .btn {
-    width: 100%;
-    padding: 14px 16px;
-    margin-top: 16px;
-    border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 800;
-    cursor: pointer;
-  }
+  .forgot-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+  .link-btn { background: none; border: none; color: var(--blue); font-size: 13px; font-weight: 700; cursor: pointer; padding: 0; }
+  .btn { width: 100%; padding: 13px 14px; margin-top: 14px; border: none; border-radius: 11px; font-size: 14px; font-weight: 800; cursor: pointer; }
   .btn-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
   .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #042f1e; }
   .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
   .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; }
-  .portal-foot {
-    margin-top: 16px;
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .msg {
-    margin-top: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-    text-align: left;
-    background: rgba(59,130,246,0.14);
-    border: 1px solid rgba(59,130,246,0.35);
-  }
+  .portal-foot { margin-top: 14px; font-size: 11px; color: var(--muted); }
+  .msg { margin-top: 11px; padding: 10px 12px; border-radius: 10px; font-size: 12px; text-align: left; background: rgba(59,130,246,0.14); border: 1px solid rgba(59,130,246,0.35); }
   .msg.err { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
   .msg.ok { background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.4); color: #6ee7b7; }
-
-  #app {
-    width: 100%;
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 14px 12px 44px;
-  }
-  .dash-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-  }
-  .top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-  }
-  .tier-badge {
-    display: inline-block;
-    margin-top: 4px;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 3px 9px;
-    border-radius: 999px;
-    background: rgba(245,158,11,0.16);
-    color: var(--gold);
-    border: 1px solid rgba(245,158,11,0.35);
-  }
-  .nav-tabs {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .nav-tab {
-    padding: 11px 6px;
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    background: var(--card);
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    text-align: center;
-  }
-  .nav-tab.active {
-    background: var(--blue);
-    color: #fff;
-    border-color: var(--blue);
-  }
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin: 12px 0;
-  }
-  .stat {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 11px 6px;
-    text-align: center;
-  }
-  .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; }
-  .stat-val { font-size: 17px; font-weight: 900; margin-top: 3px; }
-  canvas {
-    width: 100%;
-    height: 220px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    display: block;
-    margin: 10px 0;
-  }
-  .grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .pill {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 9px 4px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .row-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    padding: 11px 12px;
-    margin-bottom: 8px;
-    font-size: 13px;
-  }
+  #app { width: 100%; max-width: 540px; margin: 0 auto; padding: 12px 10px 76px; }
+  .dash-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
+  .top-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 10px 0; }
+  .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 11px; padding: 9px 6px; text-align: center; }
+  .stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+  .stat-val { font-size: 16px; font-weight: 900; margin-top: 3px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  canvas { width: 100%; height: 190px; background: var(--bg); display: block; }
+  .row-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 7px; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -279,8 +59,8 @@
 <div id="gate">
   <div class="portal-card">
     <div class="emblem">🔐</div>
-    <h1 class="portal-title">WESTRADES <span>PRO</span></h1>
-    <p class="portal-sub">Institutional R_100 Algorithmic Terminal &amp; Zero-Custody Deriv Execution</p>
+    <h1 class="portal-title">westrades<span>.pro</span></h1>
+    <p class="portal-sub">Institutional R_100 Candlestick Terminal &amp; Instant M-Pesa Cashier</p>
 
     <div class="auth-toggle">
       <button type="button" class="toggle-btn active" id="tabLoginBtn" onclick="setGateMode('login')">PIN Unlock</button>
@@ -291,13 +71,6 @@
       <div id="regFields" class="hidden">
         <label for="regName">Full Name</label>
         <input id="regName" type="text" placeholder="John Doe" />
-
-        <label for="regTier">Account Tier</label>
-        <select id="regTier">
-          <option value="Standard Trader">Standard Trader (Free Charting)</option>
-          <option value="Pro Algorithmic">Pro Algorithmic (AI Scanner)</option>
-        </select>
-
         <label for="regPhone">M-Pesa Phone Number</label>
         <input id="regPhone" type="tel" placeholder="0712345678" />
       </div>
@@ -322,382 +95,331 @@
       <button type="button" class="btn btn-blue" id="authSubmitBtn" onclick="handleGateAction()">Unlock Terminal</button>
       <div id="authMsg" class="msg hidden"></div>
     </div>
-
     <div class="portal-foot">Protected by TLS Encryption &amp; Cloud Session Lock</div>
   </div>
 </div>
 
 <div id="app" class="hidden">
   <div class="dash-card">
-    <div class="top-row">
+    <div class="top-row" style="margin-bottom: 10px;">
       <div>
-        <div style="font-size:18px;font-weight:900;">WESTRADES <span style="color:var(--gold);">PRO</span> • <span id="hdrName">Trader</span></div>
-        <span class="tier-badge" id="hdrTier">Standard Trader</span>
+        <div style="font-size:17px;font-weight:900;">westrades<span style="color:var(--gold);">.pro</span></div>
+        <div style="font-size:11px;color:var(--muted);">VAULT • @<span id="hdrName">trader</span></div>
       </div>
-      <button type="button" class="toggle-btn" style="width:auto;padding:9px 14px;background:rgba(239,68,68,0.16);color:#fca5a5;border:1px solid rgba(239,68,68,0.35);" onclick="logoutUser()">Logout</button>
-    </div>
-  </div>
-
-  <div class="nav-tabs">
-    <button type="button" class="nav-tab active" id="navTerm" onclick="showTab('term')">Terminal</button>
-    <button type="button" class="nav-tab" id="navHist" onclick="showTab('hist')">History</button>
-    <button type="button" class="nav-tab" id="navPro" onclick="showTab('pro')">Pro M-Pesa</button>
-    <button type="button" class="nav-tab" id="navApi" onclick="showTab('api')">Deriv API</button>
-  </div>
-
-  <!-- TERMINAL TAB -->
-  <div id="tabTerm" class="dash-card">
-    <div class="auth-toggle" style="margin-bottom:0;">
-      <button type="button" class="toggle-btn active" id="btnDemo" onclick="setMode('DEMO')">DEMO ($10,000)</button>
-      <button type="button" class="toggle-btn" id="btnLive" onclick="setMode('LIVE')">LIVE DERIV</button>
-    </div>
-
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-lbl">Balance</div>
-        <div class="stat-val" id="valBal">$10,000.00</div>
-      </div>
-      <div class="stat">
-        <div class="stat-lbl">R_100 Spot</div>
-        <div class="stat-val" id="valSpot" style="color:var(--blue);">1420.55</div>
-      </div>
-      <div class="stat">
-        <div class="stat-lbl">AI Signal</div>
-        <div class="stat-val" id="valSig" style="color:var(--gold);">SCANNING</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button type="button" id="btnDemo" onclick="setMode('DEMO')" style="padding:6px 12px;border-radius:8px;border:none;font-weight:800;font-size:12px;background:var(--green);color:#042f1e;cursor:pointer;">DEMO</button>
+        <button type="button" id="btnLive" onclick="setMode('LIVE')" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);font-weight:800;font-size:12px;background:var(--bg);color:var(--muted);cursor:pointer;">REAL</button>
+        <button type="button" onclick="logoutUser()" title="Lock Vault" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--gold);cursor:pointer;">🔒</button>
       </div>
     </div>
 
-    <canvas id="chartCanvas" width="600" height="220"></canvas>
+    <div id="tabTerm">
+      <div class="stats" style="margin-top:0;">
+        <div class="stat"><div class="stat-lbl">VOLATILITY 100</div><div class="stat-val" id="valSpot">4134.11</div></div>
+        <div class="stat"><div class="stat-lbl">RSI-7 PULSE</div><div class="stat-val" id="valRsi" style="color:var(--gold);">50.0</div></div>
+        <div class="stat"><div class="stat-lbl">SESSION P/L</div><div class="stat-val" id="valPnl" style="color:var(--green);">+$0.00</div></div>
+      </div>
 
-    <div class="grid-3">
-      <div class="pill">RSI: <span id="valRsi" style="color:var(--green);">52.4</span></div>
-      <div class="pill">Trend: <span id="valTrend" style="color:var(--blue);">BULLISH</span></div>
-      <div class="pill">Payout: <span style="color:var(--gold);">95.3%</span></div>
-    </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:9px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:5px;">
+          <span style="color:var(--muted);">5-TICK CANDLES • EMA-10: <span id="valEma" style="color:var(--text);">4134.11</span></span>
+          <span id="valSig" style="color:var(--blue);">SCANNING MARKET</span>
+        </div>
+        <canvas id="chartCanvas" width="600" height="200"></canvas>
+      </div>
 
-    <label for="tradeStake">Stake Amount (USD)</label>
-    <input id="tradeStake" type="number" value="10" min="1" step="1" />
+      <div class="stats" style="margin:0 0 10px;">
+        <div class="stat"><div class="stat-lbl">BALANCE</div><div class="stat-val" id="valBal">$10,000.00</div></div>
+        <div class="stat"><div class="stat-lbl">FLAT STAKE ($)</div><input id="tradeStake" type="number" value="10.00" min="1" step="1" oninput="updateTargetUI()" style="padding:4px;text-align:center;font-weight:800;font-size:15px;color:var(--blue);margin-top:2px;border-radius:8px;" /></div>
+        <div class="stat"><div class="stat-lbl">1:2 TARGET</div><div class="stat-val" id="valTarget" style="color:var(--green);">+$19.00</div></div>
+      </div>
 
-    <div class="grid-2">
-      <button type="button" class="btn btn-green" onclick="placeTrade('RISE')">▲ RISE (CALL)</button>
-      <button type="button" class="btn btn-red" onclick="placeTrade('FALL')">▼ FALL (PUT)</button>
-    </div>
-    <div id="tradeMsg" class="msg hidden"></div>
-  </div>
-
-  <div id="tabHist" class="dash-card hidden">
-    <div style="font-weight:800;margin-bottom:10px;">Execution Ledger</div>
-    <div id="histList">
-      <div class="row-item" style="color:var(--muted);justify-content:center;">No trades executed yet.</div>
-    </div>
-  </div>
-
-  <div id="tabPro" class="dash-card hidden">
-    <div style="font-weight:800;font-size:17px;margin-bottom:4px;">Unlock Pro Algorithmic Scanner</div>
-    <p style="font-size:13px;color:var(--muted);margin-top:0;">Instant M-Pesa STK Push activation for high-probability R_100 entries.</p>
-
-    <div class="row-item">
-      <span>Monthly Institutional License</span>
-      <strong style="color:var(--gold);">KES 1,500</strong>
-    </div>
-
-    <label for="mpesaPhone">M-Pesa Safaricom Number</label>
-    <input id="mpesaPhone" type="tel" placeholder="0712345678" />
-    <button type="button" class="btn btn-green" onclick="triggerMpesa()">Pay via M-Pesa Express</button>
-    <div id="mpesaMsg" class="msg hidden"></div>
-  </div>
-
-  <div id="tabApi" class="dash-card hidden">
-    <div style="font-weight:800;font-size:17px;margin-bottom:4px;">Zero-Custody Deriv API Link</div>
-    <p style="font-size:13px;color:var(--muted);margin-top:0;">Connect your Deriv API token with Read &amp; Trade scopes enabled.</p>
-
-    <label for="derivToken">Deriv API Token</label>
-    <input id="derivToken" type="password" placeholder="Paste Deriv API token here..." />
-    <button type="button" class="btn btn-blue" onclick="connectDerivApi()">Connect Live Account</button>
-    <div id="apiMsg" class="msg hidden"></div>
-  </div>
-</div>
-
+      <div class="grid-2" style="margin-bottom:10px;">
+        <div class="stat" style="padding:8px;"><div class="stat-lbl" style="color:var(--green);">🎯 TAKE PROFIT ($)</div><input id="inpTp" type="number" value="25.00" min="1" step="1" style="padding:5px;text-align:center;font-weight:800;font-size:15px;color:var(--green);margin-top:4px;border-radius:8px;" /></div>
 <script>
-  let gateMode = 'login';
-  let tradeMode = 'DEMO';
-  let demoBalance = 10000.00;
-  let liveBalance = 0.00;
-  let derivToken = '';
-  let currentUser = null;
-  let prices = [1418.2, 1419.0, 1418.7, 1419.8, 1420.1, 1419.6, 1420.5, 1421.0, 1420.4, 1421.2];
-  let trades = [];
+  let gateMode = 'login', tradeMode = 'DEMO', demoBalance = 10000.00, liveBalance = 0.00;
+  let sessionPnl = 0.00, derivToken = '', currentUser = null, scannerActive = false, tradeInProgress = false;
+  const KES_RATE = 129, USERS_KEY = 'westrades_users_v1', SESSION_KEY = 'westrades_session_v1';
 
-  const USERS_KEY = 'westrades_users_v1';
-  const SESSION_KEY = 'westrades_session_v1';
+  let currentPrice = 4134.11, tickBuffer = [4134.11], ledger = [];
+  let candles = [
+    { o: 4136.2, h: 4137.0, l: 4135.4, c: 4135.8 }, { o: 4135.8, h: 4136.5, l: 4135.0, c: 4136.3 },
+    { o: 4136.3, h: 4136.6, l: 4134.1, c: 4134.5 }, { o: 4134.5, h: 4135.2, l: 4134.2, c: 4135.0 },
+    { o: 4135.0, h: 4135.4, l: 4133.2, c: 4133.5 }, { o: 4133.5, h: 4134.0, l: 4132.1, c: 4132.4 },
+    { o: 4132.4, h: 4133.8, l: 4132.0, c: 4133.4 }, { o: 4133.4, h: 4134.3, l: 4133.0, c: 4134.1 }
+  ];
 
-  function getUsers() {
-    try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; }
-    catch (e) { return {}; }
-  }
-
-  function saveUsers(users) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  }
-
-  function showMsg(elId, text, type) {
-    const el = document.getElementById(elId);
-    el.textContent = text;
-    el.className = 'msg ' + (type || '');
-    el.classList.remove('hidden');
-  }
-
-  function hideMsg(elId) {
-    document.getElementById(elId).classList.add('hidden');
-  }
+  function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch (e) { return {}; } }
+  function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+  function showMsg(id, txt, type) { const el = document.getElementById(id); el.textContent = txt; el.className = 'msg ' + (type || ''); el.classList.remove('hidden'); }
+  function hideMsg(id) { document.getElementById(id).classList.add('hidden'); }
 
   function setGateMode(mode) {
-    gateMode = mode;
-    hideMsg('authMsg');
-    const isReg = mode === 'register';
-    const isForgot = mode === 'forgot';
-
+    gateMode = mode; hideMsg('authMsg');
+    const isReg = mode === 'register', isForgot = mode === 'forgot';
     document.getElementById('tabLoginBtn').classList.toggle('active', mode === 'login');
     document.getElementById('tabRegBtn').classList.toggle('active', isReg);
     document.getElementById('regFields').classList.toggle('hidden', !isReg);
     document.getElementById('pinRow').classList.toggle('hidden', isForgot);
     document.getElementById('resetPhoneRow').classList.toggle('hidden', !isForgot);
     document.getElementById('forgotRow').classList.toggle('hidden', isReg || isForgot);
-
-    const submitBtn = document.getElementById('authSubmitBtn');
-    const pinLabel = document.getElementById('pinLabel');
-
-    if (isReg) {
-      pinLabel.textContent = 'Create 6-Digit Security PIN';
-      submitBtn.textContent = 'Create Account';
-    } else if (isForgot) {
-      submitBtn.textContent = 'Verify Phone & Reset PIN';
-    } else {
-      pinLabel.textContent = '6-Digit Security PIN';
-      submitBtn.textContent = 'Unlock Terminal';
-    }
+    document.getElementById('authSubmitBtn').textContent = isReg ? 'Create Account' : (isForgot ? 'Verify Phone & Reset PIN' : 'Unlock Terminal');
   }
 
   function handleGateAction() {
     const email = document.getElementById('authEmail').value.trim().toLowerCase();
     const pin = document.getElementById('authPin').value.trim();
     const users = getUsers();
-
-    if (!email || !email.includes('@')) {
-      return showMsg('authMsg', 'Please enter a valid email address.', 'err');
-    }
+    if (!email || !email.includes('@')) return showMsg('authMsg', 'Please enter a valid email address.', 'err');
 
     if (gateMode === 'register') {
       const name = document.getElementById('regName').value.trim();
-      const tier = document.getElementById('regTier').value;
       const phone = document.getElementById('regPhone').value.trim();
-
       if (!name) return showMsg('authMsg', 'Please enter your full name.', 'err');
       if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'Security PIN must be exactly 6 digits.', 'err');
-      if (users[email]) return showMsg('authMsg', 'Account already exists. Switch to PIN Unlock.', 'err');
-
-      users[email] = { name, email, tier, phone, pin, demoBalance: 10000, liveBalance: 0 };
+      if (users[email]) return showMsg('authMsg', 'Account exists. Switch to PIN Unlock.', 'err');
+      users[email] = { name, email, phone, pin, demoBalance: 10000, liveBalance: 0 };
       saveUsers(users);
-      showMsg('authMsg', 'Account created! Unlocking terminal...', 'ok');
-      setTimeout(() => launchApp(users[email]), 600);
-
+      showMsg('authMsg', 'Account created! Unlocking...', 'ok');
+      setTimeout(() => launchApp(users[email]), 500);
     } else if (gateMode === 'login') {
       if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'Enter your 6-digit numeric PIN.', 'err');
       const user = users[email];
-      if (!user) return showMsg('authMsg', 'Account not found. Tap "Create Account" above.', 'err');
-      if (user.pin !== pin) return showMsg('authMsg', 'Incorrect 6-digit Security PIN.', 'err');
+      if (!user) return showMsg('authMsg', 'Account not found. Tap Create Account.', 'err');
+      if (user.pin !== pin) return showMsg('authMsg', 'Incorrect 6-digit PIN.', 'err');
       launchApp(user);
-
     } else if (gateMode === 'forgot') {
-      const phone = document.getElementById('resetPhone').value.trim();
       const user = users[email];
       if (!user) return showMsg('authMsg', 'No account found with that email.', 'err');
-      if (user.phone && phone !== user.phone) {
-        return showMsg('authMsg', 'Registered M-Pesa phone number does not match.', 'err');
-      }
-      user.pin = '123456';
+      user.pin = '123456'; saveUsers(users);
+      showMsg('authMsg', 'PIN reset to 123456. Sign in now.', 'ok');
+      setTimeout(() => setGateMode('login'), 1500);
+    }
+  }
+
+  function persistBalances() {
+    if (!currentUser) return;
+    const users = getUsers();
+    if (users[currentUser.email]) {
+      users[currentUser.email].demoBalance = demoBalance;
+      users[currentUser.email].liveBalance = liveBalance;
       saveUsers(users);
-      showMsg('authMsg', 'PIN reset to 123456. Use PIN Unlock to sign in.', 'ok');
-      setTimeout(() => setGateMode('login'), 1800);
     }
   }
 
   function launchApp(user) {
-    currentUser = user;
-    demoBalance = user.demoBalance ?? 10000;
-    liveBalance = user.liveBalance ?? 0;
+    currentUser = user; demoBalance = user.demoBalance ?? 10000; liveBalance = user.liveBalance ?? 0;
     localStorage.setItem(SESSION_KEY, user.email);
-
-    document.getElementById('hdrName').textContent = user.name;
-    document.getElementById('hdrTier').textContent = user.tier;
+    document.getElementById('hdrName').textContent = user.name.split(' ')[0].toLowerCase();
     if (user.phone) document.getElementById('mpesaPhone').value = user.phone;
-
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
-    updateBalanceUI();
-    drawChart();
+    updateUI(); drawCandles();
   }
 
   function logoutUser() {
-    localStorage.removeItem(SESSION_KEY);
-    currentUser = null;
+    scannerActive = false; localStorage.removeItem(SESSION_KEY); currentUser = null;
     document.getElementById('authPin').value = '';
-    hideMsg('authMsg');
     document.getElementById('app').classList.add('hidden');
     document.getElementById('gate').classList.remove('hidden');
   }
 
   function showTab(tab) {
-    const map = { term: 'tabTerm', hist: 'tabHist', pro: 'tabPro', api: 'tabApi' };
-    const navMap = { term: 'navTerm', hist: 'navHist', pro: 'navPro', api: 'navApi' };
-    Object.keys(map).forEach(k => {
-      document.getElementById(map[k]).classList.toggle('hidden', k !== tab);
-      document.getElementById(navMap[k]).classList.toggle('active', k === tab);
+    ['term', 'cashier', 'api'].forEach(t => {
+      const cap = t.charAt(0).toUpperCase() + t.slice(1);
+      document.getElementById('tab' + cap).classList.toggle('hidden', t !== tab);
+      document.getElementById('nav' + cap).style.color = (t === tab) ? 'var(--blue)' : 'var(--muted)';
     });
+    updateUI();
   }
 
   function setMode(mode) {
-    if (mode === 'LIVE' && !derivToken) {
-      showTab('api');
-      showMsg('apiMsg', 'Connect your Deriv API token first to trade LIVE.', 'err');
-      return;
+    if (mode === 'LIVE' && !derivToken && liveBalance <= 0) {
+      showTab('cashier');
+      return showMsg('cashierMsg', 'Deposit via M-Pesa or connect your Deriv API token to fund your REAL wallet.', '');
     }
-    tradeMode = mode;
-    document.getElementById('btnDemo').classList.toggle('active', mode === 'DEMO');
-    document.getElementById('btnLive').classList.toggle('active', mode === 'LIVE');
-    updateBalanceUI();
+    tradeMode = mode; const isDemo = mode === 'DEMO';
+    document.getElementById('btnDemo').style.background = isDemo ? 'var(--green)' : 'var(--bg)';
+    document.getElementById('btnDemo').style.color = isDemo ? '#042f1e' : 'var(--muted)';
+    document.getElementById('btnLive').style.background = !isDemo ? 'var(--gold)' : 'var(--bg)';
+    document.getElementById('btnLive').style.color = !isDemo ? '#111827' : 'var(--muted)';
+    updateUI();
   }
 
-  function updateBalanceUI() {
+  function updateTargetUI() {
+    const stake = parseFloat(document.getElementById('tradeStake').value) || 0;
+    document.getElementById('valTarget').textContent = '+$' + (stake * 1.9).toFixed(2);
+  }
+
+  function updateUI() {
     const bal = tradeMode === 'DEMO' ? demoBalance : liveBalance;
     document.getElementById('valBal').textContent = '$' + bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('cashierBal').textContent = '$' + liveBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pnlEl = document.getElementById('valPnl');
+    pnlEl.textContent = (sessionPnl >= 0 ? '+$' : '-$') + Math.abs(sessionPnl).toFixed(2);
+    pnlEl.style.color = sessionPnl >= 0 ? 'var(--green)' : 'var(--red)';
   }
 
-  function placeTrade(direction) {
-    const stake = parseFloat(document.getElementById('tradeStake').value);
-    if (isNaN(stake) || stake <= 0) return showMsg('tradeMsg', 'Enter a valid stake amount.', 'err');
+  function setCashierMode(mode) {
+    hideMsg('cashierMsg'); const isDep = mode === 'deposit';
+    document.getElementById('btnCashDep').classList.toggle('active', isDep);
+    document.getElementById('btnCashWit').classList.toggle('active', !isDep);
+    document.getElementById('boxDeposit').classList.toggle('hidden', !isDep);
+    document.getElementById('boxWithdraw').classList.toggle('hidden', isDep);
+  }
 
-    const currentBal = tradeMode === 'DEMO' ? demoBalance : liveBalance;
-    if (stake > currentBal) return showMsg('tradeMsg', 'Insufficient ' + tradeMode + ' balance.', 'err');
+  function calcKesToUsd() { document.getElementById('depUsdPreview').textContent = '$' + ((parseFloat(document.getElementById('depKes').value) || 0) / KES_RATE).toFixed(2) + ' USD'; }
+  function calcUsdToKes() { document.getElementById('witKesPreview').textContent = 'KES ' + Math.round((parseFloat(document.getElementById('witUsd').value) || 0) * KES_RATE).toLocaleString(); }
 
-    const entry = prices[prices.length - 1];
-    showMsg('tradeMsg', `Executing ${direction} ($${stake.toFixed(2)}) at ${entry.toFixed(2)}...`, '');
-
+  function processDeposit() {
+    const phone = document.getElementById('mpesaPhone').value.trim(), kes = parseFloat(document.getElementById('depKes').value);
+    if (!/^(07|01|\+254)\d{8,9}$/.test(phone)) return showMsg('cashierMsg', 'Enter a valid Safaricom M-Pesa phone number.', 'err');
+    if (isNaN(kes) || kes < 100) return showMsg('cashierMsg', 'Minimum deposit is KES 100.', 'err');
+    const usd = +(kes / KES_RATE).toFixed(2);
+    showMsg('cashierMsg', `📲 STK Push sent to ${phone} for KES ${kes.toLocaleString()}... Waiting for PIN...`, '');
     setTimeout(() => {
-      const exit = prices[prices.length - 1];
-      const won = (direction === 'RISE' && exit >= entry) || (direction === 'FALL' && exit < entry);
-      const profit = won ? +(stake * 0.953).toFixed(2) : -stake;
+      liveBalance = +(liveBalance + usd).toFixed(2); persistBalances();
+      ledger.unshift({ label: `M-Pesa Deposit (${phone})`, sub: new Date().toLocaleTimeString(), amount: usd });
+      renderLedger(); updateUI();
+      showMsg('cashierMsg', `✅ Deposit Confirmed! +$${usd.toFixed(2)} credited to REAL wallet.`, 'ok');
+    }, 2200);
+  }
 
-      if (tradeMode === 'DEMO') demoBalance += profit;
-      else liveBalance += profit;
-
-      if (currentUser) {
-        const users = getUsers();
-        if (users[currentUser.email]) {
-          users[currentUser.email].demoBalance = demoBalance;
-          users[currentUser.email].liveBalance = liveBalance;
-          saveUsers(users);
-        }
-      }
-
-      updateBalanceUI();
-      trades.unshift({ time: new Date().toLocaleTimeString(), mode: tradeMode, direction, stake, profit });
-      renderHistory();
-
-      if (won) showMsg('tradeMsg', `WIN! Payout +$${(stake + profit).toFixed(2)} (Net +$${profit.toFixed(2)})`, 'ok');
-      else showMsg('tradeMsg', `Closed out of the money (-$${stake.toFixed(2)})`, 'err');
+  function processWithdraw() {
+    const phone = document.getElementById('mpesaPhone').value.trim(), usd = parseFloat(document.getElementById('witUsd').value);
+    if (!/^(07|01|\+254)\d{8,9}$/.test(phone)) return showMsg('cashierMsg', 'Enter a valid Safaricom M-Pesa phone number.', 'err');
+    if (isNaN(usd) || usd < 2) return showMsg('cashierMsg', 'Minimum withdrawal is $2.00 USD.', 'err');
+    if (usd > liveBalance) return showMsg('cashierMsg', 'Insufficient REAL wallet balance.', 'err');
+    const kes = Math.round(usd * KES_RATE);
+    showMsg('cashierMsg', `⏳ Sending M-Pesa B2C payout of KES ${kes.toLocaleString()} to ${phone}...`, '');
+    setTimeout(() => {
+      liveBalance = +(liveBalance - usd).toFixed(2); persistBalances();
+      ledger.unshift({ label: `M-Pesa Withdrawal (${phone})`, sub: new Date().toLocaleTimeString(), amount: -usd });
+      renderLedger(); updateUI();
+      showMsg('cashierMsg', `✅ Sent KES ${kes.toLocaleString()} ($${usd.toFixed(2)}) to ${phone}!`, 'ok');
     }, 2000);
   }
 
-  function renderHistory() {
-    const list = document.getElementById('histList');
-    if (!trades.length) return;
-    list.innerHTML = trades.map(t => `
-      <div class="row-item">
-        <div><strong>R_100 ${t.direction}</strong> <span style="color:var(--muted);font-size:11px;">(${t.mode} • ${t.time})</span></div>
-        <div style="font-weight:800;color:${t.profit >= 0 ? 'var(--green)' : 'var(--red)'};">
-          ${t.profit >= 0 ? '+$' + t.profit.toFixed(2) : '-$' + Math.abs(t.profit).toFixed(2)}
-        </div>
-      </div>
-    `).join('');
+  function toggleScanner() {
+    scannerActive = !scannerActive;
+    const btn = document.getElementById('btnScanner');
+    if (scannerActive) {
+      btn.textContent = '⏹ STOP AI CANDLE SCANNER'; btn.style.borderColor = 'var(--red)'; btn.style.background = 'rgba(239,68,68,0.14)'; btn.style.color = 'var(--red)';
+      showMsg('tradeMsg', '🤖 AI SCANNER ACTIVE • WATCHING 5-TICK RSI-7 & EMA-10...', '');
+    } else {
+      btn.textContent = '🤖 START AI CANDLE SCANNER (FREE)'; btn.style.borderColor = 'var(--green)'; btn.style.background = 'rgba(16,185,129,0.12)'; btn.style.color = 'var(--green)';
+      showMsg('tradeMsg', 'Scanner paused manually.', '');
+    }
   }
 
-  function triggerMpesa() {
-    const phone = document.getElementById('mpesaPhone').value.trim();
-    if (!/^(07|01|\+254)\d{8,9}$/.test(phone)) {
-      return showMsg('mpesaMsg', 'Enter a valid Safaricom M-Pesa number (e.g. 0712345678).', 'err');
-    }
-    showMsg('mpesaMsg', `STK Push sent to ${phone}. Enter M-Pesa PIN to complete KES 1,500 payment.`, 'ok');
+  function placeTrade(direction, isAuto = false) {
+    if (tradeInProgress) return;
+    const stake = parseFloat(document.getElementById('tradeStake').value);
+    if (isNaN(stake) || stake <= 0) return showMsg('tradeMsg', 'Enter a valid stake.', 'err');
+    const bal = tradeMode === 'DEMO' ? demoBalance : liveBalance;
+    if (stake > bal) { if (scannerActive) toggleScanner(); return showMsg('tradeMsg', 'Insufficient ' + tradeMode + ' balance.', 'err'); }
+
+    tradeInProgress = true; const entry = currentPrice;
+    showMsg('tradeMsg', `${isAuto ? '🤖 AI ENTRY' : '⚡ MANUAL'}: ${direction} ($${stake.toFixed(2)}) @ ${entry.toFixed(2)} (5 Ticks)...`, '');
+
+    setTimeout(() => {
+      const exit = currentPrice;
+      const won = (direction === 'RISE' && exit >= entry) || (direction === 'FALL' && exit < entry);
+      const profit = won ? +(stake * 0.95).toFixed(2) : -stake;
+      if (tradeMode === 'DEMO') demoBalance = +(demoBalance + profit).toFixed(2); else liveBalance = +(liveBalance + profit).toFixed(2);
+      sessionPnl = +(sessionPnl + profit).toFixed(2);
+      persistBalances();
+      ledger.unshift({ label: `R_100 ${direction}`, sub: `${tradeMode} • ${new Date().toLocaleTimeString()}`, amount: profit });
+      renderLedger(); updateUI(); tradeInProgress = false;
+
+      const tp = parseFloat(document.getElementById('inpTp').value) || 9999, sl = parseFloat(document.getElementById('inpSl').value) || 9999;
+      if (scannerActive && sessionPnl >= tp) { toggleScanner(); return showMsg('tradeMsg', `🎯 TAKE PROFIT HIT (+$${sessionPnl.toFixed(2)})! SCANNER STOPPED.`, 'ok'); }
+      if (scannerActive && sessionPnl <= -sl) { toggleScanner(); return showMsg('tradeMsg', `🛑 STOP LOSS HIT (-$${Math.abs(sessionPnl).toFixed(2)}). SCANNER STOPPED.`, 'err'); }
+      if (won) showMsg('tradeMsg', `✅ 5-TICK WIN (+$${profit.toFixed(2)})`, 'ok'); else showMsg('tradeMsg', `❌ 5-TICK LOSS (-$${stake.toFixed(2)})`, 'err');
+    }, 3500);
+  }
+
+  function renderLedger() {
+    const list = document.getElementById('histList'); if (!ledger.length) return;
+    list.innerHTML = ledger.map(t => `<div class="row-item"><div><strong>${t.label}</strong> <span style="color:var(--muted);font-size:11px;">(${t.sub})</span></div><div style="font-weight:800;color:${t.amount >= 0 ? 'var(--green)' : 'var(--red)'};">${t.amount >= 0 ? '+$' + t.amount.toFixed(2) : '-$' + Math.abs(t.amount).toFixed(2)}</div></div>`).join('');
   }
 
   function connectDerivApi() {
     const token = document.getElementById('derivToken').value.trim();
-    if (token.length < 10) return showMsg('apiMsg', 'Please paste a valid Deriv API token.', 'err');
-    derivToken = token;
-    liveBalance = 250.00;
-    showMsg('apiMsg', 'Deriv API token verified. Live execution unlocked.', 'ok');
+    if (token.length < 10) return showMsg('apiMsg', 'Paste a valid Deriv API token.', 'err');
+    derivToken = token; if (liveBalance <= 0) liveBalance = 250.00;
+    persistBalances(); updateUI();
+    showMsg('apiMsg', 'Deriv API connected! Switch to REAL at the top.', 'ok');
   }
 
-  function drawChart() {
-    const canvas = document.getElementById('chartCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
+  function calcRsi7() {
+    if (candles.length < 8) return 50.0;
+    let gains = 0, losses = 0;
+    for (let i = candles.length - 7; i < candles.length; i++) {
+      const diff = candles[i].c - candles[i - 1].c;
+      if (diff >= 0) gains += diff; else losses -= diff;
+    }
+    return losses === 0 ? 92.0 : +(100 - (100 / (1 + (gains / losses)))).toFixed(1);
+  }
+
+  function drawCandles() {
+    const canvas = document.getElementById('chartCanvas'); if (!canvas) return;
+    const ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    ctx.strokeStyle = '#162033';
-    ctx.lineWidth = 1;
-    for (let y = 40; y < h; y += 45) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-    }
+    const liveCandle = { o: tickBuffer[0], h: Math.max(...tickBuffer), l: Math.min(...tickBuffer), c: tickBuffer[tickBuffer.length - 1] };
+    const allCandles = [...candles.slice(-22), liveCandle];
+    const maxP = Math.max(...allCandles.map(c => c.h)) + 0.3, minP = Math.min(...allCandles.map(c => c.l)) - 0.3;
+    const range = maxP - minP || 1, toY = p => h - 18 - ((p - minP) / range) * (h - 36);
 
-    const min = Math.min(...prices) - 0.5;
-    const max = Math.max(...prices) + 0.5;
-    const range = max - min || 1;
+    ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
+    for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    prices.forEach((p, i) => {
-      const x = (i / (prices.length - 1)) * (w - 30) + 15;
-      const y = h - 20 - ((p - min) / range) * (h - 40);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    const ema = +(allCandles.slice(-10).reduce((a, b) => a + b.c, 0) / Math.min(10, allCandles.length)).toFixed(2);
+    document.getElementById('valEma').textContent = ema.toFixed(2);
+    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#94a3b8';
+    ctx.beginPath(); ctx.moveTo(0, toY(ema)); ctx.lineTo(w, toY(ema)); ctx.stroke(); ctx.restore();
+
+    const step = (w - 24) / allCandles.length, bodyW = Math.max(6, step * 0.58);
+    allCandles.forEach((c, i) => {
+      const x = 12 + i * step + step / 2, isBull = c.c >= c.o;
+      ctx.strokeStyle = ctx.fillStyle = isBull ? '#10b981' : '#ef4444'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(x, toY(c.h)); ctx.lineTo(x, toY(c.l)); ctx.stroke();
+      const topY = toY(Math.max(c.o, c.c)), botY = toY(Math.min(c.o, c.c));
+      ctx.fillRect(x - bodyW / 2, topY, bodyW, Math.max(2, botY - topY));
     });
-    ctx.stroke();
   }
 
   setInterval(() => {
-    const last = prices[prices.length - 1];
-    const delta = (Math.random() - 0.49) * 0.85;
-    const next = +(last + delta).toFixed(2);
-    prices.push(next);
-    if (prices.length > 35) prices.shift();
-
+    const delta = (Math.random() - 0.5) * 1.1;
+    currentPrice = +(currentPrice + delta).toFixed(2);
+    tickBuffer.push(currentPrice);
+    if (tickBuffer.length >= 5) {
+      candles.push({ o: tickBuffer[0], h: Math.max(...tickBuffer), l: Math.min(...tickBuffer), c: tickBuffer[tickBuffer.length - 1] });
+      if (candles.length > 40) candles.shift();
+      tickBuffer = [currentPrice];
+    }
     const spotEl = document.getElementById('valSpot');
-    if (spotEl) {
-      spotEl.textContent = next.toFixed(2);
-      spotEl.style.color = delta >= 0 ? 'var(--green)' : 'var(--red)';
+    if (spotEl) { spotEl.textContent = currentPrice.toFixed(2); spotEl.style.color = delta >= 0 ? 'var(--green)' : 'var(--red)'; }
+
+    const rsi = calcRsi7(), rsiEl = document.getElementById('valRsi'), sigEl = document.getElementById('valSig');
+    if (rsiEl && sigEl) {
+      rsiEl.textContent = rsi.toFixed(1);
+      if (rsi <= 28) {
+        rsiEl.style.color = sigEl.style.color = 'var(--green)'; sigEl.textContent = 'OVERSOLD REBOUND';
+        if (scannerActive && !tradeInProgress) placeTrade('RISE', true);
+      } else if (rsi >= 72) {
+        rsiEl.style.color = sigEl.style.color = 'var(--red)'; sigEl.textContent = 'OVERBOUGHT DROP';
+        if (scannerActive && !tradeInProgress) placeTrade('FALL', true);
+      } else {
+        rsiEl.style.color = 'var(--gold)'; sigEl.style.color = 'var(--blue)'; sigEl.textContent = 'SCANNING MARKET';
+      }
     }
-
-    const rsi = +(45 + Math.random() * 18).toFixed(1);
-    const rsiEl = document.getElementById('valRsi');
-    if (rsiEl) rsiEl.textContent = rsi;
-
-    const sigEl = document.getElementById('valSig');
-    if (sigEl) {
-      if (rsi > 58) { sigEl.textContent = 'STRONG RISE'; sigEl.style.color = 'var(--green)'; }
-      else if (rsi < 48) { sigEl.textContent = 'STRONG FALL'; sigEl.style.color = 'var(--red)'; }
-      else { sigEl.textContent = 'SCANNING'; sigEl.style.color = 'var(--gold)'; }
-    }
-
-    if (!document.getElementById('app').classList.contains('hidden')) drawChart();
-  }, 1200);
+    if (!document.getElementById('app').classList.contains('hidden')) drawCandles();
+  }, 900);
 
   window.addEventListener('DOMContentLoaded', () => {
-    const savedEmail = localStorage.getItem(SESSION_KEY);
-    const users = getUsers();
+    const savedEmail = localStorage.getItem(SESSION_KEY), users = getUsers();
     if (savedEmail && users[savedEmail]) launchApp(users[savedEmail]);
   });
 </script>
