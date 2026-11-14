@@ -210,7 +210,8 @@
   function launchApp(user) {
     currentUser = user; demoBalance = user.demoBalance ?? 10000; liveBalance = user.liveBalance ?? 0;
     localStorage.setItem(SESSION_KEY, user.email);
-    document.getElementById('hdrName').textContent = user.name.split(' ')[0].toLowerCase();
+    document.getElementById('hdrName').textContent = (user.name || 'trader').trim().split(' ').shift().toLowerCase();
+
     if (user.phone) document.getElementById('mpesaPhone').value = user.phone;
     document.getElementById('gate').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
