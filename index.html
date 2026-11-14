@@ -2,301 +2,308 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>WESTRADES PRO | R_100 Algorithmic & M-Pesa Terminal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WESTRADES PRO | R_100 & M-Pesa Terminal</title>
 <style>
   :root {
-    --bg: #080c12;
-    --card: #101722;
-    --panel: #151e2d;
-    --border: #223047;
-    --text: #f0f6fc;
-    --muted: #8b9bb4;
-    --green: #22c55e;
+    --bg: #0b0f17;
+    --card: #131b29;
+    --border: #25334d;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --green: #10b981;
     --red: #ef4444;
     --gold: #f59e0b;
     --blue: #3b82f6;
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
+  * { box-sizing: border-box; }
+  body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    min-height: 100dvh;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 16px;
   }
   .hidden { display: none !important; }
-  #gate {
-    min-height: 100dvh;
+  .wrap {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 16px 12px;
-    background: radial-gradient(circle at top, #132238 0%, #080c12 72%);
-  }
-  .gate-card {
-    width: 100%;
-    max-width: 580px;
+    max-width: 600px;
     margin: 0 auto;
+    padding: 14px 12px 40px;
+  }
+  .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 22px 16px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
   }
-  .brand-row {
+  .top-row {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: 14px;
+    align-items: center;
+    margin-bottom: 12px;
   }
-  .brand { font-size: 22px; font-weight: 900; letter-spacing: 0.6px; }
+  .brand { font-size: 20px; font-weight: 800; }
   .brand span { color: var(--gold); }
-  .badge-ssl {
+  .badge {
     font-size: 12px;
     font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(16,185,129,0.15);
     color: var(--green);
-    background: rgba(34,197,94,0.12);
-    border: 1px solid rgba(34,197,94,0.35);
-    padding: 5px 10px;
-    border-radius: 999px;
   }
-  .auth-switch {
+  .tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    background: var(--bg);
-    padding: 5px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
     margin-bottom: 14px;
   }
-  .auth-tab {
-    padding: 12px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
+  .nav-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .tab {
+    padding: 11px 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
     color: var(--muted);
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
+    text-align: center;
   }
-  .auth-tab.active { background: var(--blue); color: #fff; }
+  .tab.active {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+  }
   label {
     display: block;
     font-size: 13px;
-    font-weight: 600;
     color: var(--muted);
-    margin: 11px 0 5px;
+    margin: 10px 0 5px;
+    font-weight: 600;
   }
   input, select {
     width: 100%;
-    padding: 13px 13px;
-    font-size: 16px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
     background: var(--bg);
     color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    outline: none;
+    font-size: 16px;
   }
-  input:focus, select:focus { border-color: var(--blue); }
   .btn {
     width: 100%;
-    padding: 15px 16px;
+    padding: 14px;
     margin-top: 14px;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 16px;
     font-weight: 800;
     cursor: pointer;
   }
-  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-blue { background: var(--blue); color: #fff; }
   .btn-green { background: var(--green); color: #052e16; }
   .btn-red { background: var(--red); color: #fff; }
-  .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; }
+  .btn-gold { background: var(--gold); color: #111827; }
   .msg {
     margin-top: 12px;
-    font-size: 14px;
-    line-height: 1.4;
-    padding: 11px 12px;
-    border-radius: 10px;
-    background: rgba(59,130,246,0.12);
-    border: 1px solid rgba(59,130,246,0.3);
-  }
-  .msg.err { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
-  .msg.ok { background: rgba(34,197,94,0.14); border-color: rgba(34,197,94,0.4); color: #86efac; }
-  #app {
-    width: 100%;
-    max-width: 680px;
-    min-height: 100dvh;
-    margin: 0 auto;
-    padding: 8px 8px 34px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-  }
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
     padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    background: rgba(59,130,246,0.15);
+    border: 1px solid rgba(59,130,246,0.4);
+  }
+  .msg.err { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+  .msg.ok { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #6ee7b7; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+    margin-bottom: 12px;
   }
-  .user-meta { display: flex; flex-direction: column; gap: 2px; }
-  .user-title { font-size: 16px; font-weight: 800; }
-  .tier-pill {
-    display: inline-block;
-    width: fit-content;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: rgba(245,158,11,0.16);
-    color: var(--gold);
-    border: 1px solid rgba(245,158,11,0.4);
-  }
-  .tier-pill.pro { background: rgba(34,197,94,0.16); color: var(--green); border-color: rgba(34,197,94,0.4); }
-  .logout-btn {
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(239,68,68,0.45);
-    background: rgba(239,68,68,0.14);
-    color: #fca5a5;
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .nav-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-  .nav-btn {
-    padding: 13px 6px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
-  }
-  .nav-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 13px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 10px; }
-  .stat-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 10px 6px; text-align: center; }
-  .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; }
-  .stat-val { font-size: 17px; font-weight: 900; margin-top: 3px; }
-  .reset-link {
-    margin-top: 4px;
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--blue);
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-  .mode-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
-  .mode-btn {
-    padding: 11px 8px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-  }
-  .mode-btn.demo.active { background: rgba(59,130,246,0.2); border-color: var(--blue); color: #93c5fd; }
-  .mode-btn.live.active { background: rgba(245,158,11,0.2); border-color: var(--gold); color: #fcd34d; }
-  .chart-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 10px; margin-bottom: 10px; }
-  .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
-  .live-price { font-size: 19px; font-weight: 900; color: var(--gold); }
-  canvas { width: 100%; height: 220px; display: block; }
-  .ind-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 10px; font-size: 12px; }
-  .ind-pill { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 6px; text-align: center; font-weight: 700; }
-  .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 10px; }
-  .risk-grid label { margin-top: 2px; font-size: 12px; }
-  .risk-grid input { padding: 11px 10px; font-size: 15px; }
-  .trade-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 6px; }
-  .trade-btn { padding: 16px 8px; border-radius: 12px; border: none; font-size: 16px; font-weight: 900; cursor: pointer; }
-  .status-banner {
-    margin-top: 11px;
-    padding: 12px;
-    border-radius: 12px;
+  .stat {
     background: var(--bg);
     border: 1px solid var(--border);
-    font-size: 13px;
-    font-weight: 700;
+    border-radius: 10px;
+    padding: 10px 6px;
     text-align: center;
-    line-height: 1.4;
   }
-  .list-head { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 800; margin-bottom: 10px; }
-  .filter-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
-  .filter-btn {
-    padding: 8px 6px;
-    border-radius: 9px;
-    border: 1px solid var(--border);
+  .stat-lbl { font-size: 11px; color: var(--muted); }
+  .stat-val { font-size: 17px; font-weight: 800; margin-top: 3px; }
+  canvas {
+    width: 100%;
+    height: 210px;
     background: var(--bg);
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: block;
+    margin-bottom: 10px;
   }
-  .filter-btn.active { background: var(--panel); color: var(--text); border-color: var(--blue); }
-  .tx-list { display: flex; flex-direction: column; gap: 8px; }
-  .tx-item {
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .pill {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .row-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 11px 12px;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
     font-size: 13px;
   }
-  .tx-left { display: flex; flex-direction: column; gap: 3px; }
-  .tx-title { font-weight: 800; font-size: 14px; }
-  .tx-sub { color: var(--muted); font-size: 12px; }
-  .tx-right { font-weight: 900; font-size: 15px; text-align: right; }
-  .won { color: var(--green); }
-  .lost { color: var(--red); }
-  .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
-  .plan-card {
-    background: var(--bg);
-    border: 2px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 10px;
-    text-align: center;
-    cursor: pointer;
-  }
-  .plan-card.selected { border-color: var(--gold); background: rgba(245,158,11,0.1); }
-  .plan-price { font-size: 19px; font-weight: 900; color: var(--gold); margin: 4px 0; }
-  .idle-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 4px; }
 </style>
 </head>
 <body>
 
-<div id="gate">
-  <div class="gate-card">
-    <div class="brand-row">
+<div id="gate" class="wrap">
+  <div class="card">
+    <div class="top-row">
       <div class="brand">WESTRADES <span>PRO</span></div>
-      <div class="badge-ssl">🔒 TLS & PIN GATE</div>
+      <div class="badge">🔒 PIN Gate</div>
     </div>
 
-    <div class="auth-switch">
-      <button class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">PIN Unlock / Login</button>
-      <button class="auth-tab" id="tabRegBtn" onclick="switchAuthMode('register')">New Account</button>
+    <div class="tabs">
+      <button type="button" class="tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">PIN Unlock / Login</button>
+      <button type="button" class="tab" id="tabRegBtn" onclick="switchAuthMode('register')">Create Account</button>
     </div>
 
     <div id="regFields" class="hidden">
-      <label>Full Name</label>
-      <input id="regName" type="text" placeholder="e.g. Dalmas Korir" />
-      <label>Starting Tier</label>
+      <label for="regName">Full Name</label>
+      <input id="regName" type="text" placeholder="Dalmas Korir" />
+
+      <label for="regTier">Account Tier</label>
       <select id="regTier">
+        <option value="Standard Trader">Standard Trader (Free Charting)</option>
+        <option value="Pro Algorithmic">Pro Algorithmic (AI Scanner)</option>
+      </select>
+    </div>
+
+    <label for="authEmail">Email Address</label>
+    <input id="authEmail" type="email" placeholder="you@gmail.com" />
+
+    <label for="authPin">6-Digit Security PIN</label>
+    <input id="authPin" type="password" inputmode="numeric" maxlength="6" placeholder="123456" />
+
+    <button type="button" class="btn btn-blue" id="authSubmitBtn" onclick="submitAuth()">Unlock Terminal</button>
+    <div id="authMsg" class="msg hidden"></div>
+  </div>
+</div>
+
+<div id="app" class="wrap hidden">
+  <div class="card">
+    <div class="top-row" style="margin-bottom:0;">
+      <div>
+        <div class="brand" style="font-size:17px;">WESTRADES <span>PRO</span> • <span id="hdrName" style="color:var(--text);">Trader</span></div>
+        <div style="font-size:12px;color:var(--gold);margin-top:2px;" id="hdrTier">Standard Trader</div>
+      </div>
+      <button type="button" class="tab" style="width:auto;padding:8px 12px;color:#fca5a5;" onclick="logoutUser()">Logout</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button type="button" class="tab active" id="navTerm" onclick="showTab('term')">Trade</button>
+    <button type="button" class="tab" id="navHist" onclick="showTab('hist')">History</button>
+    <button type="button" class="tab" id="navPro" onclick="showTab('pro')">Pro M-Pesa</button>
+    <button type="button" class="tab" id="navApi" onclick="showTab('api')">Deriv API</button>
+  </div>
+
+  <div id="tabTerm" class="card">
+    <div class="tabs">
+      <button type="button" class="tab active" id="btnDemo" onclick="setMode('DEMO')">DEMO ($10,000)</button>
+      <button type="button" class="tab" id="btnLive" onclick="setMode('LIVE')">LIVE DERIV</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-lbl">Balance</div>
+        <div class="stat-val" id="valBal">$10,000.00</div>
+        <button type="button" id="resetDemoBtn" onclick="resetDemo()" style="background:none;border:none;color:var(--blue);font-size:11px;margin-top:3px;cursor:pointer;">Reset $10K</button>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Session P/L</div>
+        <div class="stat-val" id="valPnl">$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Win Rate</div>
+        <div class="stat-val" id="valWr">0%</div>
+      </div>
+    </div>
+
+    <div class="top-row" style="font-size:13px;">
+      <span>Volatility 100 (5-Tick Candle)</span>
+      <strong style="color:var(--gold);font-size:18px;" id="liveTick">Connecting...</strong>
+    </div>
+    <canvas id="candleChart" width="560" height="210"></canvas>
+
+    <div class="grid-3">
+      <div class="pill">EMA: <span id="indEma">--</span></div>
+      <div class="pill">RSI-7: <span id="indRsi">--</span></div>
+      <div class="pill">Signal: <span id="indSig">WAIT</span></div>
+    </div>
+
+    <div class="grid-3">
+      <div>
+        <label style="margin-top:0;">Stake ($)</label>
+        <input id="stakeInput" type="number" step="0.5" min="0.5" value="2" />
+      </div>
+      <div>
+        <label style="margin-top:0;">Take Profit ($)</label>
+        <input id="tpInput" type="number" step="1" min="1" value="25" />
+      </div>
+      <div>
+        <label style="margin-top:0;">Stop Loss ($)</label>
+        <input id="slInput" type="number" step="1" min="1" value="15" />
+      </div>
+    </div>
+
+    <div class="tabs" style="margin-bottom:0;">
+      <button type="button" class="btn btn-green" style="margin-top:0;" onclick="placeTrade('CALL')">▲ RISE (5 Ticks)</button>
+      <button type="button" class="btn btn-red" style="margin-top:0;" onclick="placeTrade('PUT')">▼ FALL (5 Ticks)</button>
+    </div>
+
+    <button type="button" class="btn btn-gold" id="botBtn" onclick="toggleBot()">Start AI Confluence Scanner (Pro)</button>
+    <div class="msg" id="statusBar" style="text-align:center;">Ready — Dual-EMA + RSI-7 + Candle Filter</div>
+  </div>
+
+  <div id="tabHist" class="card hidden">
+    <div class="top-row">
+      <strong>Your Trade History</strong>
+      <span id="tradeCount" style="font-size:12px;color:var(--muted);">0 trades</span>
+    </div>
+    <div class="grid-3">
+      <button type="button" class="tab active" id="fltAll" onclick="setTradeFilter('ALL')">All</button>
+      <button type="button" class="tab" id="fltWon" onclick="setTradeFilter('WON')">Wins</button>
+      <button type="button" class="tab" id="fltLost" onclick="setTradeFilter('LOST')">Losses</button>
+    </div>
+    <div id="tradeHistoryList"><div style="color:var(--muted);font-size:13px;">No trades yet.</div></div>
+  </div>
+
+  <div id="tabPro" class="card hidden">
+    <div class="top-row">
+      <strong>Unlock Pro Scanner</strong>
+      <span style="font-size:12px;color:var(--green);">M-Pesa STK</span>
+    </div>
+    <div class="tabs">
+      <button type="button" class="tab active" id="planWeekly" onclick="selectPlan('PRO_WEEKLY')">7 Days • KES 500</button>
