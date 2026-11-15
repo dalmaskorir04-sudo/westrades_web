@@ -3,28 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WESTRADES PRO | R_100 Sniper Terminal</title>
+<title>WESTRADES PRO | Live R_100 Sniper Terminal</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #070b14;
-    color: #f1f5f9;
+    background: #070b14; color: #f1f5f9;
     font-family: system-ui, -apple-system, sans-serif;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 12px 12px 68px;
+    min-height: 100dvh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; padding: 12px 12px 68px;
   }
   .hide { display: none !important; }
   .box {
-    width: 100%;
-    max-width: 460px;
-    background: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 16px;
-    padding: 16px;
+    width: 100%; max-width: 460px; background: #111827;
+    border: 1px solid #1f2937; border-radius: 16px; padding: 16px;
     box-shadow: 0 20px 45px rgba(0,0,0,0.6);
   }
   .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -37,10 +28,7 @@
     width: 100%; padding: 10px; margin-top: 4px; border-radius: 9px;
     border: 1px solid #263244; background: #090d16; color: #fff; font-size: 14px; outline: none;
   }
-  button {
-    border: none; border-radius: 9px; font-weight: 800; cursor: pointer;
-    padding: 11px; font-size: 13px; width: 100%;
-  }
+  button { border: none; border-radius: 9px; font-weight: 800; cursor: pointer; padding: 11px; font-size: 13px; width: 100%; }
   .btn-blue { background: #2563eb; color: #fff; }
   .btn-green { background: #10b981; color: #052e16; }
   .btn-red { background: #ef4444; color: #fff; }
@@ -49,10 +37,7 @@
   .alert.ok { background: rgba(16,185,129,0.16); color: #6ee7b7; border: 1px solid #059669; }
   .alert.err { background: rgba(239,68,68,0.16); color: #fca5a5; border: 1px solid #dc2626; }
   canvas { width: 100%; height: 185px; background: #090d16; border-radius: 10px; display: block; margin-top: 6px; }
-  .nav {
-    position: fixed; bottom: 0; left: 0; right: 0; background: #111827;
-    border-top: 1px solid #1f2937; display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 0;
-  }
+  .nav { position: fixed; bottom: 0; left: 0; right: 0; background: #111827; border-top: 1px solid #1f2937; display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 0; }
   .nav button { background: none; color: #94a3b8; padding: 4px; font-size: 12px; }
   .nav button.on { color: #3b82f6; }
 </style>
@@ -61,7 +46,7 @@
 
 <div id="authScreen" class="box">
   <h2 style="text-align:center;margin-bottom:4px;">WESTRADES <span style="color:#f59e0b;">PRO</span></h2>
-  <p style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:12px;">Live R_100 Sniper &amp; M-Pesa Cashier</p>
+  <p style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:12px;">Live Deriv R_100 Sniper &amp; M-Pesa Cashier</p>
   <div class="grid2" style="margin-bottom:10px;">
     <button type="button" id="tLog" class="btn-blue" onclick="switchAuth('login')">PIN Unlock</button>
     <button type="button" id="tReg" style="background:#090d16;color:#94a3b8;" onclick="switchAuth('reg')">Create Account</button>
@@ -99,23 +84,24 @@
     <div class="pill" style="margin-top:8px;text-align:left;">
       <div class="row" style="font-size:10px;">
         <span style="color:#94a3b8;">5-TICK CANDLES • EMA-10: <strong id="emaTxt" style="color:#fff;">--.--</strong></span>
-        <span id="sigTxt" style="color:#3b82f6;font-weight:800;">CONNECTING...</span>
+        <span id="sigTxt" style="color:#3b82f6;font-weight:800;">CONNECTING DERIV...</span>
       </div>
       <canvas id="candleCanvas" width="540" height="185"></canvas>
     </div>
 
     <div class="grid3" style="margin-top:8px;">
       <div class="pill"><div class="lbl">Balance</div><div class="val" id="balTxt">$10,000.00</div></div>
-      <div class="pill"><div class="lbl">Stake ($)</div><input id="stakeIn" type="number" value="10" min="1" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;" /></div>
-      <div class="pill"><div class="lbl">Max Snipes</div><select id="maxSnipeIn" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;color:#f59e0b;"><option value="1">1 Trade</option><option value="2" selected>2 Trades</option></select></div>
+      <div class="pill"><div class="lbl">Stake ($)</div><input id="stakeIn" type="number" value="10" min="1" oninput="update1to2()" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;" /></div>
+      <div class="pill"><div class="lbl">1:2 Profit</div><div class="val" id="rrTxt" style="color:#10b981;">+$20.00</div></div>
     </div>
 
-    <div class="grid2" style="margin-top:8px;">
-      <div class="pill"><div class="lbl" style="color:#10b981;">Take Profit ($)</div><input id="tpIn" type="number" value="25" min="1" style="padding:3px;text-align:center;font-weight:800;color:#10b981;margin-top:2px;" /></div>
-      <div class="pill"><div class="lbl" style="color:#ef4444;">Stop Loss ($)</div><input id="slIn" type="number" value="15" min="1" style="padding:3px;text-align:center;font-weight:800;color:#ef4444;margin-top:2px;" /></div>
+    <div class="grid3" style="margin-top:8px;">
+      <div class="pill"><div class="lbl" style="color:#10b981;">Take Profit</div><input id="tpIn" type="number" value="25" min="1" style="padding:3px;text-align:center;font-weight:800;color:#10b981;margin-top:2px;" /></div>
+      <div class="pill"><div class="lbl" style="color:#ef4444;">Stop Loss</div><input id="slIn" type="number" value="15" min="1" style="padding:3px;text-align:center;font-weight:800;color:#ef4444;margin-top:2px;" /></div>
+      <div class="pill"><div class="lbl" style="color:#f59e0b;">Max Snipes</div><select id="maxSnipeIn" onchange="refreshSniperBtn()" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;color:#f59e0b;"><option value="1">1 Trade</option><option value="2" selected>2 Trades</option></select></div>
     </div>
 
-    <div id="regimeBox" class="alert" style="text-align:center;font-weight:800;margin-top:8px;">⏳ CHECKING RSI-7 &amp; EMA-10 REGIME...</div>
+    <div id="regimeBox" class="alert" style="text-align:center;font-weight:800;margin-top:8px;">⏳ SYNCING LIVE DERIV R_100 FEED...</div>
 
     <button type="button" id="sniperBtn" class="btn-green" style="margin-top:8px;" onclick="toggleSniper()">🎯 START AI SNIPER PRO (0/2)</button>
 
@@ -164,9 +150,9 @@
 </div>
 <script>
   let mode = 'login', acct = 'DEMO', demoBal = 10000, realBal = 0, pnl = 0;
-  let apiTok = '', user = null, armed = false, busy = false, snipes = 0;
-  let spot = 0, prevSpot = 0, lastStep = 0, ticks = [], bars = [], logs = [];
-  const RATE = 129, DB_KEY = 'wt_users_v3', SES_KEY = 'wt_ses_v3';
+  let apiTok = '', user = null, armed = false, busy = false, snipes = 0, safeToArm = false;
+  let spot = 0, prevSpot = 0, lastStep = 0, ticks = [], bars = [], logs = [], liveSocket = null;
+  const RATE = 129, DB_KEY = 'wt_users_v5', SES_KEY = 'wt_ses_v5';
 
   const $ = id => document.getElementById(id);
   const getDB = () => { try { return JSON.parse(localStorage.getItem(DB_KEY)) || {}; } catch { return {}; } };
@@ -174,26 +160,19 @@
 
   function note(id, msg, cls = '') {
     const el = $(id); if (!el) return;
-    el.textContent = msg;
-    el.className = 'alert ' + cls;
-    el.classList.remove('hide');
+    el.textContent = msg; el.className = 'alert ' + cls; el.classList.remove('hide');
   }
 
   function switchAuth(m) {
-    mode = m;
-    $('authAlert').classList.add('hide');
-    $('tLog').style.background = m === 'login' ? '#2563eb' : '#090d16';
-    $('tLog').style.color = m === 'login' ? '#fff' : '#94a3b8';
-    $('tReg').style.background = m === 'reg' ? '#2563eb' : '#090d16';
-    $('tReg').style.color = m === 'reg' ? '#fff' : '#94a3b8';
+    mode = m; $('authAlert').classList.add('hide');
+    $('tLog').style.background = m === 'login' ? '#2563eb' : '#090d16'; $('tLog').style.color = m === 'login' ? '#fff' : '#94a3b8';
+    $('tReg').style.background = m === 'reg' ? '#2563eb' : '#090d16'; $('tReg').style.color = m === 'reg' ? '#fff' : '#94a3b8';
     $('regBox').classList.toggle('hide', m !== 'reg');
     $('btnAuth').textContent = m === 'reg' ? 'Create Account' : 'Unlock Terminal';
   }
 
   function submitAuth() {
-    const email = $('inEmail').value.trim().toLowerCase();
-    const pin = $('inPin').value.trim();
-    const db = getDB();
+    const email = $('inEmail').value.trim().toLowerCase(), pin = $('inPin').value.trim(), db = getDB();
     if (!email.includes('@')) return note('authAlert', 'Enter a valid email.', 'err');
     if (!/^\d{6}$/.test(pin)) return note('authAlert', 'Enter a 6-digit numeric PIN.', 'err');
 
@@ -202,8 +181,7 @@
       if (!name) return note('authAlert', 'Enter your full name.', 'err');
       if (db[email]) return note('authAlert', 'Email exists. Use PIN Unlock.', 'err');
       db[email] = { name, email, phone, pin, demoBal: 10000, realBal: 0 };
-      saveDB(db);
-      enterTerminal(db[email]);
+      saveDB(db); enterTerminal(db[email]);
     } else {
       if (!db[email]) return note('authAlert', 'Account not found. Tap Create Account.', 'err');
       if (db[email].pin !== pin) return note('authAlert', 'Incorrect 6-digit PIN.', 'err');
@@ -214,11 +192,7 @@
   function syncWallet() {
     if (!user) return;
     const db = getDB();
-    if (db[user.email]) {
-      db[user.email].demoBal = demoBal;
-      db[user.email].realBal = realBal;
-      saveDB(db);
-    }
+    if (db[user.email]) { db[user.email].demoBal = demoBal; db[user.email].realBal = realBal; saveDB(db); }
   }
 
   function enterTerminal(u) {
@@ -226,16 +200,13 @@
     localStorage.setItem(SES_KEY, u.email);
     $('userTag').textContent = (u.name || 'trader').trim().split(' ').shift().toLowerCase();
     if (u.phone) $('mpesaNum').value = u.phone;
-    $('authScreen').classList.add('hide');
-    $('mainScreen').classList.remove('hide');
-    refreshStats(); refreshSniperBtn(); startLiveFeed();
+    $('authScreen').classList.add('hide'); $('mainScreen').classList.remove('hide');
+    refreshStats(); refreshSniperBtn(); connectRealDeriv();
   }
 
   function lockVault() {
     armed = false; localStorage.removeItem(SES_KEY); user = null;
-    $('inPin').value = '';
-    $('mainScreen').classList.add('hide');
-    $('authScreen').classList.remove('hide');
+    $('inPin').value = ''; $('mainScreen').classList.add('hide'); $('authScreen').classList.remove('hide');
   }
 
   function openView(v) {
@@ -247,16 +218,16 @@
   }
 
   function setAcct(a) {
-    if (a === 'REAL' && !apiTok && realBal <= 0) {
-      openView('Cashier');
-      return note('cashAlert', 'Deposit via M-Pesa or link Deriv API first.', '');
-    }
+    if (a === 'REAL' && !apiTok && realBal <= 0) { openView('Cashier'); return note('cashAlert', 'Deposit via M-Pesa or link Deriv API first.', ''); }
     acct = a;
-    $('mDemo').style.background = a === 'DEMO' ? '#10b981' : '#090d16';
-    $('mDemo').style.color = a === 'DEMO' ? '#052e16' : '#94a3b8';
-    $('mReal').style.background = a === 'REAL' ? '#f59e0b' : '#090d16';
-    $('mReal').style.color = a === 'REAL' ? '#111827' : '#94a3b8';
+    $('mDemo').style.background = a === 'DEMO' ? '#10b981' : '#090d16'; $('mDemo').style.color = a === 'DEMO' ? '#052e16' : '#94a3b8';
+    $('mReal').style.background = a === 'REAL' ? '#f59e0b' : '#090d16'; $('mReal').style.color = a === 'REAL' ? '#111827' : '#94a3b8';
     refreshStats();
+  }
+
+  function update1to2() {
+    const stk = parseFloat($('stakeIn').value) || 0;
+    $('rrTxt').textContent = '+$' + (stk * 2.0).toFixed(2);
   }
 
   function refreshStats() {
@@ -265,14 +236,13 @@
     $('realBalTxt').textContent = '$' + realBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     $('pnlTxt').textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
     $('pnlTxt').style.color = pnl >= 0 ? '#10b981' : '#ef4444';
+    update1to2();
   }
 
   function setCashTab(t) {
     $('cashAlert').classList.add('hide');
-    $('depPanel').classList.toggle('hide', t !== 'dep');
-    $('witPanel').classList.toggle('hide', t !== 'wit');
-    $('cDepBtn').className = t === 'dep' ? 'btn-blue' : '';
-    $('cWitBtn').className = t === 'wit' ? 'btn-blue' : '';
+    $('depPanel').classList.toggle('hide', t !== 'dep'); $('witPanel').classList.toggle('hide', t !== 'wit');
+    $('cDepBtn').className = t === 'dep' ? 'btn-blue' : ''; $('cWitBtn').className = t === 'wit' ? 'btn-blue' : '';
   }
 
   function doDeposit() {
@@ -311,10 +281,8 @@
     note('apiAlert', 'Deriv API linked! Switch to REAL above.', 'ok');
   }
 
-  let safeToArm = false;
   function refreshSniperBtn() {
-    const max = parseInt($('maxSnipeIn').value, 10);
-    const btn = $('sniperBtn');
+    const max = parseInt($('maxSnipeIn').value, 10), btn = $('sniperBtn');
     btn.textContent = armed ? `⏹ STOP SNIPER PRO (${snipes}/${max})` : `🎯 START AI SNIPER PRO (${snipes}/${max})`;
     btn.className = armed ? 'btn-red' : 'btn-green';
   }
@@ -322,13 +290,12 @@
   function toggleSniper() {
     const max = parseInt($('maxSnipeIn').value, 10);
     if (!armed) {
+      if (!spot || bars.length < 8) return note('tradeAlert', '⏳ Wait a few seconds for live Deriv candles to load.', 'err');
       if (!safeToArm) return note('tradeAlert', '⚠️ WAIT: Market trending. Wait for RSI 35–65 & EMA-10 range!', 'err');
       if (snipes >= max) snipes = 0;
-      armed = true;
-      note('tradeAlert', `🎯 SNIPER ARMED • WAITING FOR EXTREME RSI + REVERSAL TICK (MAX ${max})...`, '');
+      armed = true; note('tradeAlert', `🎯 SNIPER ARMED • HUNTING HIGH-CONFLUENCE REVERSAL (MAX ${max})...`, '');
     } else {
-      armed = false;
-      note('tradeAlert', 'Sniper paused.', '');
+      armed = false; note('tradeAlert', 'Sniper paused.', '');
     }
     refreshSniperBtn();
   }
@@ -341,25 +308,25 @@
 
     busy = true; const entry = spot; let count = 0;
     if (auto) { snipes++; refreshSniperBtn(); }
-    note('tradeAlert', `${auto ? `🎯 SNIPER #${snipes}` : '⚡ MANUAL'}: ${dir} ($${stk}) @ ${entry.toFixed(2)}...`, '');
+    note('tradeAlert', `${auto ? `🎯 SNIPER #${snipes}` : '⚡ MANUAL'}: ${dir} ($${stk}) @ ${entry.toFixed(2)} (0/5 Ticks)...`, '');
 
     const timer = setInterval(() => {
       if (spot !== prevSpot) count++;
       if (count >= 5) {
         clearInterval(timer);
         const won = (dir === 'RISE' && spot > entry) || (dir === 'FALL' && spot < entry);
+        // Locked 1:2 Risk-to-Reward net profit
         const net = won ? +(stk * 2.0).toFixed(2) : -stk;
         if (acct === 'DEMO') demoBal = +(demoBal + net).toFixed(2); else realBal = +(realBal + net).toFixed(2);
         pnl = +(pnl + net).toFixed(2); syncWallet();
         logs.unshift({ t: `R_100 ${dir} (${acct})`, v: net }); renderLogs(); refreshStats(); busy = false;
 
-        const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999;
-        const max = parseInt($('maxSnipeIn').value, 10);
+        const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipeIn').value, 10);
         if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
           armed = false; refreshSniperBtn();
-          return note('tradeAlert', `🛑 SNIPER STOPPED • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
+          return note('tradeAlert', `🛑 SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
         }
-        note('tradeAlert', won ? `✅ 5-TICK WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
+        note('tradeAlert', won ? `✅ 1:2 WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
       }
     }, 450);
   }
@@ -375,13 +342,21 @@
   }
 
   function renderChart() {
-    const cv = $('candleCanvas'); if (!cv || !ticks.length) return;
+    const cv = $('candleCanvas'); if (!cv || (!bars.length && !ticks.length)) return;
     const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
     ctx.clearRect(0, 0, w, h);
-    const live = { o: ticks, h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] };
-    const list = [...bars.slice(-20), live];
+
+    const list = [...bars.slice(-20)];
+    if (ticks.length) {
+     list.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
+    }
+    if (!list.length) return spot;
+
     const hi = Math.max(...list.map(b => b.h)) + 0.25, lo = Math.min(...list.map(b => b.l)) - 0.25;
     const yOf = p => h - 14 - ((p - lo) / (hi - lo || 1)) * (h - 28);
+
+    ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
+    for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
     const ema = +(list.slice(-10).reduce((s, b) => s + b.c, 0) / Math.min(10, list.length)).toFixed(2);
     $('emaTxt').textContent = ema.toFixed(2);
@@ -427,27 +402,47 @@
         $('sigTxt').textContent = '🎯 SNIPER FALL'; $('sigTxt').style.color = '#ef4444';
         if (armed && !busy) execTrade('FALL', true);
       } else {
-        $('sigTxt').textContent = 'LIVE R_100 FEED'; $('sigTxt').style.color = '#3b82f6';
+        $('sigTxt').textContent = 'LIVE DERIV R_100'; $('sigTxt').style.color = '#3b82f6';
       }
     }
     lastStep = step;
   }
 
-  function startLiveFeed() {
-    const ws = new WebSocket('wss://://derivws.com');
-    ws.onopen = () => ws.send(JSON.stringify({ ticks_history: 'R_100', count: 50, end: 'latest', style: 'ticks', subscribe: 1 }));
-    ws.onmessage = e => {
+  function connectRealDeriv() {
+    if (liveSocket) try { liveSocket.close(); } catch {}
+    const endpoint = ['wss://ws', 'derivws', 'com/websockets/v3?app_id=1089'].join('.');
+    liveSocket = new WebSocket(endpoint);
+
+    liveSocket.onopen = () => {
+      $('sigTxt').textContent = 'LIVE DERIV R_100';
+      $('sigTxt').style.color = '#3b82f6';
+      liveSocket.send(JSON.stringify({ ticks_history: 'R_100', count: 60, end: 'latest', style: 'ticks', subscribe: 1 }));
+    };
+
+    liveSocket.onmessage = e => {
       const d = JSON.parse(e.data);
-      if (d.history?.prices) {
+      if (d.history && d.history.prices) {
         bars = []; ticks = [];
         d.history.prices.forEach(p => {
           ticks.push(+p);
-          if (ticks.length >= 5) { bars.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] }); ticks = [+p]; }
+          if (ticks.length >= 5) {
+            bars.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
+            ticks = [+p];
+          }
         });
-        spot = +d.history.prices.at(-1); renderChart();
-      } else if (d.tick) onTick(+d.tick.quote);
+        spot = +d.history.prices[d.history.prices.length - 1];
+        $('spotTxt').textContent = spot.toFixed(2);
+        renderChart();
+      } else if (d.tick) {
+        onTick(+d.tick.quote);
+      }
     };
-    ws.onclose = () => setTimeout(startLiveFeed, 3000);
+
+    liveSocket.onclose = () => {
+      $('sigTxt').textContent = 'RECONNECTING...';
+      $('sigTxt').style.color = '#f59e0b';
+      setTimeout(connectRealDeriv, 2500);
+    };
   }
 
   window.addEventListener('DOMContentLoaded', () => {
