@@ -86,7 +86,8 @@
     <div class="grid3">
       <div class="pill"><div class="lbl">R_100 Live</div><div class="val" id="spotTxt">--.--</div></div>
       <div class="pill"><div class="lbl">RSI-7</div><div class="val" id="rsiTxt" style="color:#f59e0b;">50.0</div></div>
-      <div class="pill"><div class="lbl">Session P/L</div><div class="val" id="pnlTxt" style="color:#10b981;">+$0.00</div></div>
+           <div class="pill" onclick="resetSession()" style="cursor:pointer;" title="Tap to reset Session P/L"><div class="lbl">Session P/L 🔄</div><div id="pnlTxt" class="val" style="color:#10b981;">+$0.00</div></div>
+
     </div>
 
     <div class="pill" style="margin-top:8px;text-align:left;">
@@ -100,7 +101,8 @@
     <div class="grid3" style="margin-top:8px;">
       <div class="pill"><div class="lbl">Balance</div><div class="val" id="balTxt">$10,000.00</div></div>
       <div class="pill"><div class="lbl">Stake ($)</div><input id="stakeIn" type="number" value="10" min="1" oninput="update1to2()" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;" /></div>
-      <div class="pill"><div class="lbl">1:2 Profit</div><div class="val" id="rrTxt" style="color:#10b981;">+$20.00</div></div>
+              <div class="pill"><div id="rrLbl" class="lbl">1:2 Profit</div><div id="rrTxt" class="val" style="color:#60a5fa;">+$20.00</div></div>
+
     </div>
 
     <div class="grid3" style="margin-top:8px;">
@@ -268,10 +270,23 @@
     refreshStats();
   }
 
-  function update1to2() {
+    function update1to2() {
     const stk = parseFloat($('stakeIn').value) || 0;
-    $('rrTxt').textContent = '+$' + (stk * 2.0).toFixed(2);
+    const isReal = acct === 'REAL';
+    if ($('rrLbl')) $('rrLbl').textContent = isReal ? 'Deriv Est. (~95%)' : '1:2 Profit';
+    $('rrTxt').textContent = (isReal ? '~+$' : '+$') + (stk * (isReal ? 0.95 : 2.0)).toFixed(2);
   }
+
+  function resetSession() {
+    if (busy) return;
+    pnl = 0;
+    snipes = 0;
+    armed = false;
+    refreshStats();
+    refreshSniperBtn();
+    note('tradeAlert', '🔄 Session P/L & Sniper counter reset to $0.00.', 'ok');
+  }
+
 
   function refreshStats() {
     const b = acct === 'DEMO' ? demoBal : realBal;
@@ -458,6 +473,11 @@
         armed = false; refreshSniperBtn();
         return note('tradeAlert', '⚠️ Connect your Deriv API Token in the API tab first!', 'err');
       }
+           if (stk < 0.35) {
+        armed = false; refreshSniperBtn();
+        return note('tradeAlert', '⚠️ Deriv minimum real stake is $0.35 USD.', 'err');
+      }
+
       busy = true;
       if (auto) { snipes++; refreshSniperBtn(); }
       note('tradeAlert', `🚀 SENDING REAL ORDER: ${dir} ($${stk}) TO DERIV...`, '');
