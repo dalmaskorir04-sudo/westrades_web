@@ -227,7 +227,10 @@
     if (db[user.email]) {
       db[user.email].demoBal = demoBal;
       db[user.email].realBal = realBal;
-      db[user.email].logs = logs;
+         db[user.email].logs = logs;
+   db[user.email].apiTok = apiTok;
+
+     
       saveDB(db);
     }
   }
@@ -239,6 +242,8 @@
     if (u.phone) $('mpesaNum').value = u.phone;
     $('authScreen').classList.add('hide'); $('mainScreen').classList.remove('hide');
     refreshStats(); refreshSniperBtn(); renderLogs(); connectRealDeriv();
+    if (u.apiTok) { $('apiTokIn').value = u.apiTok; saveApiTok(); }
+
   }
 
 
