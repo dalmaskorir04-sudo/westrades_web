@@ -270,11 +270,11 @@
     refreshStats();
   }
 
-    function update1to2() {
+    
+  function update1to2() {
     const stk = parseFloat($('stakeIn').value) || 0;
-    const isReal = acct === 'REAL';
-    if ($('rrLbl')) $('rrLbl').textContent = isReal ? 'Deriv Est. (~95%)' : '1:2 Profit';
-    $('rrTxt').textContent = (isReal ? '~+$' : '+$') + (stk * (isReal ? 0.95 : 2.0)).toFixed(2);
+    if ($('rrLbl')) $('rrLbl').textContent = 'Deriv Est. (~95%)';
+    $('rrTxt').textContent = '~+$' + (stk * 0.95).toFixed(2);
   }
 
   function resetSession() {
@@ -541,7 +541,7 @@
       if (count >= 5) {
         clearInterval(timer);
         const won = (dir === 'RISE' && spot > entry) || (dir === 'FALL' && spot < entry);
-        const net = won ? +(stk * 2.0).toFixed(2) : -stk;
+        const net = won ? +(stk * 0.95).toFixed(2) : -stk;
         demoBal = +(demoBal + net).toFixed(2);
         pnl = +(pnl + net).toFixed(2);
         syncWallet();
@@ -554,8 +554,9 @@
           armed = false; refreshSniperBtn();
           return note('tradeAlert', `🛑 SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
         }
-        note('tradeAlert', won ? `✅ 1:2 WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
-      }
+        
+           note('tradeAlert', won ? `✅ DEMO WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
+
     }, 450);
   }
    function getRsi() {
