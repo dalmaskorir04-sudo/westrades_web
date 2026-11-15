@@ -117,6 +117,15 @@
       <strong>M-Pesa Express Cashier</strong>
       <strong id="realBalTxt" style="color:#10b981;">$0.00</strong>
     </div>
+       <div class="grid2" style="margin-bottom:8px;">
+      <a href="https://deriv.com" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:#059669;color:#fff;padding:10px 6px;border-radius:9px;font-weight:800;font-size:12px;">
+        🌐 Deriv Deposit ($5 Min)
+      </a>
+      <a href="https://deriv.com" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:#d97706;color:#fff;padding:10px 6px;border-radius:9px;font-weight:800;font-size:12px;">
+        💸 Deriv Withdraw ($5 Min)
+      </a>
+    </div>
+
     <div class="grid2" style="margin-bottom:8px;">
       <button type="button" id="cDepBtn" class="btn-blue" onclick="setCashTab('dep')">⬇ Deposit</button>
       <button type="button" id="cWitBtn" style="background:#090d16;color:#94a3b8;" onclick="setCashTab('wit')">⬆ Withdraw</button>
@@ -270,15 +279,49 @@
     }, 1800);
   }
 
+  
   function renderLogs() {
-    $('ledgerBox').innerHTML = logs.map(x => `<div class="pill row" style="margin-bottom:5px;padding:7px 10px;"><span>${x.t}</span><strong style="color:${x.v >= 0 ? '#10b981' : '#ef4444'}">${x.v >= 0 ? '+$' + x.v.toFixed(2) : '-$' + Math.abs(x.v).toFixed(2)}</strong></div>`).join('');
+  $('ledgerBox').innerHTML = logs.map(x => `<div class="pill row" style="margin-bottom:5px;padding:7px 10px;"><span>${x.t}</span><strong style="color:${x.v >= 0 ? '#10b981' : '#ef4444'}">${x.v >= 0 ? '+$' + x.v.toFixed(2) : '-$' + Math.abs(x.v).toFixed(2)}</strong></div>`).join('');
+}
+
+
+
+  let derivReady = false, derivLoginId = '';
+
+  function sendDerivReq(payload) {
+    return new Promise((resolve, reject) => {
+      const url = ['wss://ws', 'derivws', 'com/websockets/v3?app_id=1089'].join('.');
+      const sock = new WebSocket(url);
+      const timer = setTimeout(() => { sock.close(); reject(new Error('Deriv API connection timed out')); }, 8000);
+      sock.onopen = () => sock.send(JSON.stringify(payload));
+      sock.onmessage = e => {
+        clearTimeout(timer);
+        const res = JSON.parse(e.data);
+        sock.close();
+        if (res.error) reject(new Error(res.error.message));
+        else resolve(res);
+      };
+      sock.onerror = () => { clearTimeout(timer); reject(new Error('Network blocked Deriv API')); };
+    });
   }
 
-  function saveApiTok() {
+  async function saveApiTok() {
     const tok = $('apiTokIn').value.trim();
-    if (tok.length < 10) return note('apiAlert', 'Paste valid Deriv API token.', 'err');
-    apiTok = tok; if (realBal <= 0) realBal = 250; syncWallet(); refreshStats();
-    note('apiAlert', 'Deriv API linked! Switch to REAL above.', 'ok');
+    if (tok.length < 10) return note('apiAlert', 'Paste a valid Deriv API token.', 'err');
+    note('apiAlert', '⏳ Connecting to your Deriv account...', '');
+    try {
+      const res = await sendDerivReq({ authorize: tok });
+      apiTok = tok;
+      derivReady = true;
+      derivLoginId = res.authorize.loginid;
+      realBal = +res.authorize.balance;
+      syncWallet();
+      refreshStats();
+      note('apiAlert', `✅ Linked (${derivLoginId}) • Live Balance: $${realBal.toFixed(2)}`, 'ok');
+    } catch (err) {
+      derivReady = false;
+      note('apiAlert', '❌ Auth failed: ' + err.message, 'err');
+    }
   }
 
   function refreshSniperBtn() {
@@ -290,21 +333,83 @@
   function toggleSniper() {
     const max = parseInt($('maxSnipeIn').value, 10);
     if (!armed) {
-      if (!spot || bars.length < 8) return note('tradeAlert', '⏳ Wait a few seconds for live Deriv candles to load.', 'err');
+      if (!spot || bars.length < 8) return note('tradeAlert', '⏳ Wait a few seconds for live candles to load.', 'err');
       if (!safeToArm) return note('tradeAlert', '⚠️ WAIT: Market trending. Wait for RSI 35–65 & EMA-10 range!', 'err');
       if (snipes >= max) snipes = 0;
-      armed = true; note('tradeAlert', `🎯 SNIPER ARMED • HUNTING HIGH-CONFLUENCE REVERSAL (MAX ${max})...`, '');
+      armed = true;
+      note('tradeAlert', `🎯 SNIPER ARMED (${acct}) • HUNTING HIGH-CONFLUENCE REVERSAL (MAX ${max})...`, '');
     } else {
-      armed = false; note('tradeAlert', 'Sniper paused.', '');
+      armed = false;
+      note('tradeAlert', 'Sniper paused.', '');
     }
     refreshSniperBtn();
   }
 
-  function execTrade(dir, auto = false) {
+  async function execTrade(dir, auto = false) {
     if (busy || !spot) return;
     const stk = parseFloat($('stakeIn').value);
     const bal = acct === 'DEMO' ? demoBal : realBal;
-    if (isNaN(stk) || stk <= 0 || stk > bal) { armed = false; refreshSniperBtn(); return note('tradeAlert', 'Invalid stake or balance.', 'err'); }
+    if (isNaN(stk) || stk <= 0 || stk > bal) {
+      armed = false; refreshSniperBtn();
+      return note('tradeAlert', 'Invalid stake or insufficient balance.', 'err');
+    }
+
+    if (acct === 'REAL') {
+      if (!derivReady || !apiTok) {
+        armed = false; refreshSniperBtn();
+        return note('tradeAlert', '⚠️ Connect your Deriv API Token in the API tab first!', 'err');
+      }
+      busy = true;
+      if (auto) { snipes++; refreshSniperBtn(); }
+      note('tradeAlert', `🚀 SENDING REAL ORDER: ${dir} ($${stk}) TO DERIV...`, '');
+
+      const url = ['wss://ws', 'derivws', 'com/websockets/v3?app_id=1089'].join('.');
+      const wsOrder = new WebSocket(url);
+      wsOrder.onopen = () => wsOrder.send(JSON.stringify({ authorize: apiTok }));
+      wsOrder.onmessage = e => {
+        const d = JSON.parse(e.data);
+        if (d.error) {
+          wsOrder.close(); busy = false;
+          return note('tradeAlert', '❌ Deriv Error: ' + d.error.message, 'err');
+        }
+        if (d.msg_type === 'authorize') {
+          wsOrder.send(JSON.stringify({
+            buy: 1,
+            subscribe: 1,
+            price: stk,
+            parameters: {
+              amount: stk,
+              basis: 'stake',
+              contract_type: dir === 'RISE' ? 'CALL' : 'PUT',
+              currency: 'USD',
+              duration: 5,
+              duration_unit: 't',
+              symbol: 'R_100'
+            }
+          }));
+        } else if (d.msg_type === 'buy') {
+          note('tradeAlert', `⚡ REAL CONTRACT LIVE (ID: ${d.buy.contract_id}) • 5 TICKS...`, '');
+        } else if (d.msg_type === 'proposal_open_contract' && d.proposal_open_contract.is_sold) {
+          const poc = d.proposal_open_contract;
+          const net = +poc.profit;
+          realBal = +(realBal + net).toFixed(2);
+          pnl = +(pnl + net).toFixed(2);
+          syncWallet();
+          logs.unshift({ t: `REAL R_100 ${dir}`, v: net });
+          renderLogs(); refreshStats();
+          wsOrder.close(); busy = false;
+
+          const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipeIn').value, 10);
+          if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
+            armed = false; refreshSniperBtn();
+            return note('tradeAlert', `🛑 REAL SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
+          }
+          note('tradeAlert', net >= 0 ? `✅ REAL WIN (+$${net.toFixed(2)})` : `❌ REAL LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
+        }
+      };
+      wsOrder.onerror = () => { busy = false; note('tradeAlert', '❌ Connection error sending order to Deriv.', 'err'); };
+      return;
+    }
 
     busy = true; const entry = spot; let count = 0;
     if (auto) { snipes++; refreshSniperBtn(); }
@@ -315,11 +420,12 @@
       if (count >= 5) {
         clearInterval(timer);
         const won = (dir === 'RISE' && spot > entry) || (dir === 'FALL' && spot < entry);
-        // Locked 1:2 Risk-to-Reward net profit
         const net = won ? +(stk * 2.0).toFixed(2) : -stk;
-        if (acct === 'DEMO') demoBal = +(demoBal + net).toFixed(2); else realBal = +(realBal + net).toFixed(2);
-        pnl = +(pnl + net).toFixed(2); syncWallet();
-        logs.unshift({ t: `R_100 ${dir} (${acct})`, v: net }); renderLogs(); refreshStats(); busy = false;
+        demoBal = +(demoBal + net).toFixed(2);
+        pnl = +(pnl + net).toFixed(2);
+        syncWallet();
+        logs.unshift({ t: `DEMO R_100 ${dir}`, v: net });
+        renderLogs(); refreshStats(); busy = false;
 
         const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipeIn').value, 10);
         if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
@@ -330,8 +436,7 @@
       }
     }, 450);
   }
-
-  function getRsi() {
+   function getRsi() {
     if (bars.length < 8) return 50;
     let g = 0, l = 0;
     for (let i = bars.length - 7; i < bars.length; i++) {
@@ -348,7 +453,7 @@
 
     const list = [...bars.slice(-20)];
     if (ticks.length) {
-     list.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
+      list.push({ o: ticks, h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
     }
     if (!list.length) return spot;
 
@@ -357,6 +462,7 @@
 
     ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
     for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
 
     const ema = +(list.slice(-10).reduce((s, b) => s + b.c, 0) / Math.min(10, list.length)).toFixed(2);
     $('emaTxt').textContent = ema.toFixed(2);
