@@ -555,7 +555,8 @@
           return note('tradeAlert', `🛑 SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
         }
         
-           note('tradeAlert', won ? `✅ DEMO WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
+                   note('tradeAlert', won ? `✅ DEMO WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
+
 
     }, 450);
   }
