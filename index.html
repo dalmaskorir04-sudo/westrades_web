@@ -3,485 +3,456 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>westrades.pro | R_100 Candlestick &amp; M-Pesa Terminal</title>
+<title>WESTRADES PRO | R_100 Sniper Terminal</title>
 <style>
-  :root {
-    --bg: #060911; --card: #0f1624; --border: #22304a;
-    --text: #f8fafc; --muted: #94a3b8; --green: #10b981;
-    --red: #ef4444; --gold: #f59e0b; --blue: #3b82f6;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #070b14;
+    color: #f1f5f9;
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 12px 68px;
   }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0; width: 100%; min-height: 100dvh;
-    background: radial-gradient(circle at top, #13213c 0%, #060911 70%);
-    color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  .hide { display: none !important; }
+  .box {
+    width: 100%;
+    max-width: 460px;
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.6);
   }
-  .hidden { display: none !important; }
-  #gate { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 18px 14px; }
-  .portal-card { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.65); text-align: center; }
-  .emblem { width: 50px; height: 50px; margin: 0 auto 10px; border-radius: 14px; background: rgba(59,130,246,0.18); border: 1px solid rgba(245,158,11,0.45); display: flex; align-items: center; justify-content: center; font-size: 22px; }
-  .portal-title { font-size: 22px; font-weight: 900; margin: 0 0 4px; }
-  .portal-title span { color: var(--gold); }
-  .portal-sub { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
-  .auth-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg); padding: 5px; border-radius: 11px; border: 1px solid var(--border); margin-bottom: 12px; }
-  .toggle-btn { padding: 9px 6px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
-  .toggle-btn.active { background: var(--blue); color: #fff; }
-  .form-group { text-align: left; }
-  label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin: 10px 0 4px; }
-  input { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; outline: none; }
-  input:focus { border-color: var(--blue); }
-  .btn { width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .pill { background: #090d16; border: 1px solid #1f2937; border-radius: 10px; padding: 8px 6px; text-align: center; }
+  .lbl { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+  .val { font-size: 15px; font-weight: 900; margin-top: 2px; }
+  input, select {
+    width: 100%; padding: 10px; margin-top: 4px; border-radius: 9px;
+    border: 1px solid #263244; background: #090d16; color: #fff; font-size: 14px; outline: none;
+  }
+  button {
+    border: none; border-radius: 9px; font-weight: 800; cursor: pointer;
+    padding: 11px; font-size: 13px; width: 100%;
+  }
   .btn-blue { background: #2563eb; color: #fff; }
-  .btn-green { background: #10b981; color: #042f1e; }
+  .btn-green { background: #10b981; color: #052e16; }
   .btn-red { background: #ef4444; color: #fff; }
   .btn-gold { background: #f59e0b; color: #111827; }
-  .msg { margin-top: 10px; padding: 9px 11px; border-radius: 9px; font-size: 12px; text-align: left; background: rgba(59,130,246,0.14); border: 1px solid rgba(59,130,246,0.35); }
-  .msg.err { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
-  .msg.ok { background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.4); color: #6ee7b7; }
-  #app { width: 100%; max-width: 520px; margin: 0 auto; padding: 10px 10px 72px; }
-  .dash-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 13px; }
-  .top-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 9px 0; }
-  .stat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 5px; text-align: center; }
-  .stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
-  .stat-val { font-size: 15px; font-weight: 900; margin-top: 2px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  canvas { width: 100%; height: 185px; background: var(--bg); display: block; }
-  .row-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; margin-bottom: 6px; font-size: 12px; }
+  .alert { margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 12px; background: #1e293b; color: #e2e8f0; }
+  .alert.ok { background: rgba(16,185,129,0.16); color: #6ee7b7; border: 1px solid #059669; }
+  .alert.err { background: rgba(239,68,68,0.16); color: #fca5a5; border: 1px solid #dc2626; }
+  canvas { width: 100%; height: 185px; background: #090d16; border-radius: 10px; display: block; margin-top: 6px; }
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0; background: #111827;
+    border-top: 1px solid #1f2937; display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 0;
+  }
+  .nav button { background: none; color: #94a3b8; padding: 4px; font-size: 12px; }
+  .nav button.on { color: #3b82f6; }
 </style>
 </head>
 <body>
 
-<div id="gate">
-  <div class="portal-card">
-    <div class="emblem">🔐</div>
-    <h1 class="portal-title">westrades<span>.pro</span></h1>
-    <p class="portal-sub">R_100 Candlestick Terminal &amp; Instant M-Pesa Cashier</p>
-
-    <div class="auth-toggle">
-      <button type="button" class="toggle-btn active" id="tabLoginBtn" onclick="setGateMode('login')">PIN Unlock</button>
-      <button type="button" class="toggle-btn" id="tabRegBtn" onclick="setGateMode('register')">Create Account</button>
-    </div>
-
-    <div class="form-group">
-      <div id="regFields" class="hidden">
-        <label for="regName">Full Name</label>
-        <input id="regName" type="text" placeholder="Dalmas Korir" />
-        <label for="regPhone">M-Pesa Phone Number</label>
-        <input id="regPhone" type="tel" placeholder="0712345678" />
-      </div>
-
-      <label for="authEmail">Email Address</label>
-      <input id="authEmail" type="email" placeholder="you@gmail.com" />
-
-      <div id="pinRow">
-        <label for="authPin">6-Digit Security PIN</label>
-        <input id="authPin" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" />
-      </div>
-
-      <div style="text-align:right;margin-top:6px;" id="forgotRow">
-        <button type="button" onclick="setGateMode('forgot')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;">Forgot PIN?</button>
-      </div>
-
-      <button type="button" class="btn btn-blue" id="authSubmitBtn" onclick="handleGateAction()">Unlock Terminal</button>
-      <div id="authMsg" class="msg hidden"></div>
-    </div>
+<div id="authScreen" class="box">
+  <h2 style="text-align:center;margin-bottom:4px;">WESTRADES <span style="color:#f59e0b;">PRO</span></h2>
+  <p style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:12px;">Live R_100 Sniper &amp; M-Pesa Cashier</p>
+  <div class="grid2" style="margin-bottom:10px;">
+    <button type="button" id="tLog" class="btn-blue" onclick="switchAuth('login')">PIN Unlock</button>
+    <button type="button" id="tReg" style="background:#090d16;color:#94a3b8;" onclick="switchAuth('reg')">Create Account</button>
   </div>
+  <div id="regBox" class="hide">
+    <input id="inName" type="text" placeholder="Full Name" />
+    <input id="inPhone" type="tel" placeholder="M-Pesa Phone (0712345678)" />
+  </div>
+  <input id="inEmail" type="email" placeholder="Email Address" />
+  <input id="inPin" type="password" inputmode="numeric" maxlength="6" placeholder="6-Digit Security PIN" />
+  <button type="button" id="btnAuth" class="btn-blue" style="margin-top:10px;" onclick="submitAuth()">Unlock Terminal</button>
+  <div id="authAlert" class="alert hide"></div>
 </div>
 
-<div id="app" class="hidden">
-  <div class="dash-card">
-    <div class="top-row" style="margin-bottom:8px;">
-      <div>
-        <div style="font-size:16px;font-weight:900;">westrades<span style="color:var(--gold);">.pro</span></div>
-        <div style="font-size:11px;color:var(--muted);">VAULT • @<span id="hdrName">trader</span></div>
-      </div>
-      <div style="display:flex;gap:5px;">
-        <button type="button" id="btnDemo" onclick="setMode('DEMO')" style="padding:6px 11px;border-radius:7px;border:none;font-weight:800;font-size:11px;background:var(--green);color:#042f1e;cursor:pointer;">DEMO</button>
-        <button type="button" id="btnLive" onclick="setMode('LIVE')" style="padding:6px 11px;border-radius:7px;border:1px solid var(--border);font-weight:800;font-size:11px;background:var(--bg);color:var(--muted);cursor:pointer;">REAL</button>
-        <button type="button" onclick="logoutUser()" style="padding:6px 9px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--gold);cursor:pointer;">🔒</button>
-      </div>
+<div id="mainScreen" class="box hide">
+  <div class="row" style="margin-bottom:10px;">
+    <div>
+      <strong style="font-size:16px;">westrades<span style="color:#f59e0b;">.pro</span></strong>
+      <div style="font-size:11px;color:#94a3b8;">@<span id="userTag">trader</span></div>
     </div>
-
-    <div id="tabTerm">
-      <div class="stats" style="margin-top:0;">
-        <div class="stat"><div class="stat-lbl">R_100 SPOT</div><div class="stat-val" id="valSpot">4134.11</div></div>
-        <div class="stat"><div class="stat-lbl">RSI-7 PULSE</div><div class="stat-val" id="valRsi" style="color:var(--gold);">50.0</div></div>
-        <div class="stat"><div class="stat-lbl">SESSION P/L</div><div class="stat-val" id="valPnl" style="color:var(--green);">+$0.00</div></div>
-      </div>
-
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:8px;margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:700;margin-bottom:4px;">
-          <span style="color:var(--muted);">5-TICK CANDLES • EMA-10: <span id="valEma" style="color:var(--text);">4134.11</span></span>
-          <span id="valSig" style="color:var(--blue);">SCANNING MARKET</span>
-        </div>
-        <canvas id="chartCanvas" width="600" height="190"></canvas>
-      </div>
-
-      <div class="stats" style="margin:0 0 8px;">
-        <div class="stat"><div class="stat-lbl">BALANCE</div><div class="stat-val" id="valBal">$10,000.00</div></div>
-        <div class="stat"><div class="stat-lbl">STAKE ($)</div><input id="tradeStake" type="number" value="10" min="1" oninput="updateTargetUI()" style="padding:3px;text-align:center;font-weight:800;font-size:14px;color:var(--blue);margin-top:2px;border-radius:6px;" /></div>
-        <div class="stat"><div class="stat-lbl">PAYOUT</div><div class="stat-val" id="valTarget" style="color:var(--green);">+$19.50</div></div>
-      </div>
-
-      <div class="grid-2" style="margin-bottom:8px;">
-        <div class="stat" style="padding:6px;"><div class="stat-lbl" style="color:var(--green);">🎯 TAKE PROFIT ($)</div><input id="inpTp" type="number" value="25" min="1" style="padding:4px;text-align:center;font-weight:800;font-size:14px;color:var(--green);margin-top:3px;border-radius:6px;" /></div>
-        <div class="stat" style="padding:6px;"><div class="stat-lbl" style="color:var(--red);">🛑 STOP LOSS ($)</div><input id="inpSl" type="number" value="15" min="1" style="padding:4px;text-align:center;font-weight:800;font-size:14px;color:var(--red);margin-top:3px;border-radius:6px;" /></div>
-      </div>
-
-      <button type="button" id="btnScanner" onclick="toggleScanner()" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--green);background:rgba(16,185,129,0.12);color:var(--green);font-weight:800;font-size:12px;cursor:pointer;">🤖 START AI CANDLE SCANNER (FREE)</button>
-
-      <div class="grid-2" style="margin-top:8px;">
-        <button type="button" class="btn btn-green" style="margin-top:0;" onclick="placeTrade('RISE')">📈 RISE (5 TICKS)</button>
-        <button type="button" class="btn btn-red" style="margin-top:0;" onclick="placeTrade('FALL')">📉 FALL (5 TICKS)</button>
-      </div>
-      <div id="tradeMsg" class="msg hidden" style="text-align:center;font-weight:700;"></div>
-    </div>
-
-    <div id="tabCashier" class="hidden">
-      <div class="top-row" style="margin-bottom:10px;">
-        <div>
-          <div style="font-weight:900;font-size:15px;">M-Pesa Express Cashier</div>
-          <div style="font-size:11px;color:var(--muted);">1 USD = 129 KES</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:var(--muted);">REAL WALLET</div>
-          <div id="cashierBal" style="font-weight:900;font-size:15px;color:var(--green);">$0.00</div>
-        </div>
-      </div>
-
-      <div class="auth-toggle">
-        <button type="button" class="toggle-btn active" id="btnCashDep" onclick="setCashierMode('deposit')">⬇ Deposit</button>
-        <button type="button" class="toggle-btn" id="btnCashWit" onclick="setCashierMode('withdraw')">⬆ Withdraw</button>
-      </div>
-
-      <label for="mpesaPhone">M-Pesa Phone Number</label>
-      <input id="mpesaPhone" type="tel" placeholder="0712345678" />
-
-      <div id="boxDeposit">
-        <label for="depKes">Deposit Amount (KES)</label>
-        <input id="depKes" type="number" value="1290" min="100" oninput="calcKesToUsd()" />
-        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Receive: <strong id="depUsdPreview" style="color:var(--green);">$10.00 USD</strong></div>
-        <button type="button" class="btn btn-green" onclick="processDeposit()">📲 Deposit via M-Pesa</button>
-      </div>
-
-      <div id="boxWithdraw" class="hidden">
-        <label for="witUsd">Withdraw Amount (USD)</label>
-        <input id="witUsd" type="number" value="10" min="2" oninput="calcUsdToKes()" />
-        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Receive: <strong id="witKesPreview" style="color:var(--gold);">KES 1,290</strong></div>
-        <button type="button" class="btn btn-gold" onclick="processWithdraw()">💸 Withdraw to M-Pesa</button>
-      </div>
-
-      <div id="cashierMsg" class="msg hidden"></div>
-
-      <div style="font-weight:800;font-size:11px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;">Ledger History</div>
-      <div id="histList"><div class="row-item" style="color:var(--muted);justify-content:center;">No transactions or trades yet.</div></div>
-    </div>
-
-    <div id="tabApi" class="hidden">
-      <div style="font-weight:800;font-size:15px;margin-bottom:4px;">Deriv API &amp; Security Vault</div>
-      <p style="font-size:12px;color:var(--muted);margin-top:0;">Link your Deriv API token for REAL account execution.</p>
-      <label for="derivToken">Deriv API Token</label>
-      <input id="derivToken" type="password" placeholder="Paste Deriv API token..." />
-      <button type="button" class="btn btn-blue" onclick="connectDerivApi()">Connect Real Account</button>
-      <div id="apiMsg" class="msg hidden"></div>
+    <div style="display:flex;gap:5px;">
+      <button type="button" id="mDemo" class="btn-green" style="width:auto;padding:5px 10px;font-size:11px;" onclick="setAcct('DEMO')">DEMO</button>
+      <button type="button" id="mReal" style="width:auto;padding:5px 10px;font-size:11px;background:#090d16;color:#94a3b8;" onclick="setAcct('REAL')">REAL</button>
+      <button type="button" style="width:auto;padding:5px 9px;font-size:11px;background:#090d16;color:#f59e0b;" onclick="lockVault()">🔒</button>
     </div>
   </div>
 
-  <div style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,1fr);padding:10px 0;z-index:50;">
-    <button type="button" id="navTerm" onclick="showTab('term')" style="background:none;border:none;color:var(--blue);font-weight:800;font-size:12px;cursor:pointer;">📊 Terminal</button>
-    <button type="button" id="navCashier" onclick="showTab('cashier')" style="background:none;border:none;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;">💳 Cashier</button>
-    <button type="button" id="navApi" onclick="showTab('api')" style="background:none;border:none;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;">⚙️ API &amp; Vault</button>
+  <div id="viewTrade">
+    <div class="grid3">
+      <div class="pill"><div class="lbl">R_100 Live</div><div class="val" id="spotTxt">--.--</div></div>
+      <div class="pill"><div class="lbl">RSI-7</div><div class="val" id="rsiTxt" style="color:#f59e0b;">50.0</div></div>
+      <div class="pill"><div class="lbl">Session P/L</div><div class="val" id="pnlTxt" style="color:#10b981;">+$0.00</div></div>
+    </div>
+
+    <div class="pill" style="margin-top:8px;text-align:left;">
+      <div class="row" style="font-size:10px;">
+        <span style="color:#94a3b8;">5-TICK CANDLES • EMA-10: <strong id="emaTxt" style="color:#fff;">--.--</strong></span>
+        <span id="sigTxt" style="color:#3b82f6;font-weight:800;">CONNECTING...</span>
+      </div>
+      <canvas id="candleCanvas" width="540" height="185"></canvas>
+    </div>
+
+    <div class="grid3" style="margin-top:8px;">
+      <div class="pill"><div class="lbl">Balance</div><div class="val" id="balTxt">$10,000.00</div></div>
+      <div class="pill"><div class="lbl">Stake ($)</div><input id="stakeIn" type="number" value="10" min="1" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;" /></div>
+      <div class="pill"><div class="lbl">Max Snipes</div><select id="maxSnipeIn" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;color:#f59e0b;"><option value="1">1 Trade</option><option value="2" selected>2 Trades</option></select></div>
+    </div>
+
+    <div class="grid2" style="margin-top:8px;">
+      <div class="pill"><div class="lbl" style="color:#10b981;">Take Profit ($)</div><input id="tpIn" type="number" value="25" min="1" style="padding:3px;text-align:center;font-weight:800;color:#10b981;margin-top:2px;" /></div>
+      <div class="pill"><div class="lbl" style="color:#ef4444;">Stop Loss ($)</div><input id="slIn" type="number" value="15" min="1" style="padding:3px;text-align:center;font-weight:800;color:#ef4444;margin-top:2px;" /></div>
+    </div>
+
+    <div id="regimeBox" class="alert" style="text-align:center;font-weight:800;margin-top:8px;">⏳ CHECKING RSI-7 &amp; EMA-10 REGIME...</div>
+
+    <button type="button" id="sniperBtn" class="btn-green" style="margin-top:8px;" onclick="toggleSniper()">🎯 START AI SNIPER PRO (0/2)</button>
+
+    <div class="grid2" style="margin-top:8px;">
+      <button type="button" class="btn-green" onclick="execTrade('RISE')">📈 RISE (5 TICKS)</button>
+      <button type="button" class="btn-red" onclick="execTrade('FALL')">📉 FALL (5 TICKS)</button>
+    </div>
+    <div id="tradeAlert" class="alert hide" style="text-align:center;font-weight:700;"></div>
+  </div>
+
+  <div id="viewCashier" class="hide">
+    <div class="row" style="margin-bottom:8px;">
+      <strong>M-Pesa Express Cashier</strong>
+      <strong id="realBalTxt" style="color:#10b981;">$0.00</strong>
+    </div>
+    <div class="grid2" style="margin-bottom:8px;">
+      <button type="button" id="cDepBtn" class="btn-blue" onclick="setCashTab('dep')">⬇ Deposit</button>
+      <button type="button" id="cWitBtn" style="background:#090d16;color:#94a3b8;" onclick="setCashTab('wit')">⬆ Withdraw</button>
+    </div>
+    <input id="mpesaNum" type="tel" placeholder="Safaricom Number (0712345678)" />
+    <div id="depPanel">
+      <input id="kesIn" type="number" value="1290" min="100" placeholder="Amount in KES (1 USD = 129 KES)" />
+      <button type="button" class="btn-green" style="margin-top:8px;" onclick="doDeposit()">📲 Deposit via M-Pesa</button>
+    </div>
+    <div id="witPanel" class="hide">
+      <input id="usdIn" type="number" value="10" min="2" placeholder="Amount in USD" />
+      <button type="button" class="btn-gold" style="margin-top:8px;" onclick="doWithdraw()">💸 Withdraw to M-Pesa</button>
+    </div>
+    <div id="cashAlert" class="alert hide"></div>
+    <div id="ledgerBox" style="margin-top:10px;max-height:140px;overflow-y:auto;"></div>
+  </div>
+
+  <div id="viewApi" class="hide">
+    <strong>Deriv API Link</strong>
+    <p style="font-size:12px;color:#94a3b8;margin:4px 0 8px;">Paste your Deriv API token to unlock REAL account execution.</p>
+    <input id="apiTokIn" type="password" placeholder="Deriv API Token..." />
+    <button type="button" class="btn-blue" style="margin-top:8px;" onclick="saveApiTok()">Connect Token</button>
+    <div id="apiAlert" class="alert hide"></div>
+  </div>
+
+  <div class="nav">
+    <button type="button" id="nTrade" class="on" onclick="openView('Trade')">📊 Terminal</button>
+    <button type="button" id="nCashier" onclick="openView('Cashier')">💳 Cashier</button>
+    <button type="button" id="nApi" onclick="openView('Api')">⚙️ API</button>
   </div>
 </div>
 <script>
-  let gateMode = 'login', tradeMode = 'DEMO', demoBalance = 10000, liveBalance = 0;
-  let sessionPnl = 0, derivToken = '', currentUser = null, scannerActive = false, tradeInProgress = false;
-  const KES_RATE = 129, USERS_KEY = 'westrades_users_v2', SESSION_KEY = 'westrades_session_v2';
+  let mode = 'login', acct = 'DEMO', demoBal = 10000, realBal = 0, pnl = 0;
+  let apiTok = '', user = null, armed = false, busy = false, snipes = 0;
+  let spot = 0, prevSpot = 0, lastStep = 0, ticks = [], bars = [], logs = [];
+  const RATE = 129, DB_KEY = 'wt_users_v3', SES_KEY = 'wt_ses_v3';
 
-  let currentPrice = 4134.11, tickBuffer = [4134.11], ledger = [];
-  let candles = [
-    { o: 4136.2, h: 4137.0, l: 4135.4, c: 4135.8 }, { o: 4135.8, h: 4136.5, l: 4135.0, c: 4136.3 },
-    { o: 4136.3, h: 4136.6, l: 4134.1, c: 4134.5 }, { o: 4134.5, h: 4135.2, l: 4134.2, c: 4135.0 },
-    { o: 4135.0, h: 4135.4, l: 4133.2, c: 4133.5 }, { o: 4133.5, h: 4134.0, l: 4132.1, c: 4132.4 },
-    { o: 4132.4, h: 4133.8, l: 4132.0, c: 4133.4 }, { o: 4133.4, h: 4134.3, l: 4133.0, c: 4134.1 }
-  ];
+  const $ = id => document.getElementById(id);
+  const getDB = () => { try { return JSON.parse(localStorage.getItem(DB_KEY)) || {}; } catch { return {}; } };
+  const saveDB = d => localStorage.setItem(DB_KEY, JSON.stringify(d));
 
-  function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch (e) { return {}; } }
-  function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-  function showMsg(id, txt, type) { const el = document.getElementById(id); if (!el) return; el.textContent = txt; el.className = 'msg ' + (type || ''); el.classList.remove('hidden'); }
-  function hideMsg(id) { const el = document.getElementById(id); if (el) el.classList.add('hidden'); }
-
-  function setGateMode(mode) {
-    gateMode = mode; hideMsg('authMsg');
-    const isReg = mode === 'register', isForgot = mode === 'forgot';
-    document.getElementById('tabLoginBtn').classList.toggle('active', mode === 'login');
-    document.getElementById('tabRegBtn').classList.toggle('active', isReg);
-    document.getElementById('regFields').classList.toggle('hidden', !isReg);
-    document.getElementById('pinRow').classList.toggle('hidden', isForgot);
-    document.getElementById('forgotRow').classList.toggle('hidden', isReg || isForgot);
-    document.getElementById('authSubmitBtn').textContent = isReg ? 'Create Account' : (isForgot ? 'Reset PIN to 123456' : 'Unlock Terminal');
+  function note(id, msg, cls = '') {
+    const el = $(id); if (!el) return;
+    el.textContent = msg;
+    el.className = 'alert ' + cls;
+    el.classList.remove('hide');
   }
 
-  function handleGateAction() {
-    const email = document.getElementById('authEmail').value.trim().toLowerCase();
-    const pin = document.getElementById('authPin').value.trim();
-    const users = getUsers();
-    if (!email || !email.includes('@')) return showMsg('authMsg', 'Enter a valid email address.', 'err');
-
-    if (gateMode === 'register') {
-      const name = document.getElementById('regName').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-      if (!name) return showMsg('authMsg', 'Enter your full name.', 'err');
-      if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'PIN must be exactly 6 digits.', 'err');
-      if (users[email]) return showMsg('authMsg', 'Email already exists. Switch to PIN Unlock.', 'err');
-      users[email] = { name, email, phone, pin, demoBalance: 10000, liveBalance: 0 };
-      saveUsers(users);
-      launchApp(users[email]);
-    } else if (gateMode === 'login') {
-      if (!/^\d{6}$/.test(pin)) return showMsg('authMsg', 'Enter your 6-digit PIN.', 'err');
-      const user = users[email];
-      if (!user) return showMsg('authMsg', 'Account not found. Tap Create Account first.', 'err');
-      if (user.pin !== pin) return showMsg('authMsg', 'Incorrect 6-digit PIN.', 'err');
-      launchApp(user);
-    } else if (gateMode === 'forgot') {
-      const user = users[email];
-      if (!user) return showMsg('authMsg', 'No account found with that email.', 'err');
-      user.pin = '123456'; saveUsers(users);
-      showMsg('authMsg', 'PIN reset to 123456. Sign in now.', 'ok');
-      setTimeout(() => setGateMode('login'), 1200);
-    }
+  function switchAuth(m) {
+    mode = m;
+    $('authAlert').classList.add('hide');
+    $('tLog').style.background = m === 'login' ? '#2563eb' : '#090d16';
+    $('tLog').style.color = m === 'login' ? '#fff' : '#94a3b8';
+    $('tReg').style.background = m === 'reg' ? '#2563eb' : '#090d16';
+    $('tReg').style.color = m === 'reg' ? '#fff' : '#94a3b8';
+    $('regBox').classList.toggle('hide', m !== 'reg');
+    $('btnAuth').textContent = m === 'reg' ? 'Create Account' : 'Unlock Terminal';
   }
 
-  function persistBalances() {
-    if (!currentUser) return;
-    const users = getUsers();
-    if (users[currentUser.email]) {
-      users[currentUser.email].demoBalance = demoBalance;
-      users[currentUser.email].liveBalance = liveBalance;
-      saveUsers(users);
-    }
-  }
+  function submitAuth() {
+    const email = $('inEmail').value.trim().toLowerCase();
+    const pin = $('inPin').value.trim();
+    const db = getDB();
+    if (!email.includes('@')) return note('authAlert', 'Enter a valid email.', 'err');
+    if (!/^\d{6}$/.test(pin)) return note('authAlert', 'Enter a 6-digit numeric PIN.', 'err');
 
-  function launchApp(user) {
-    currentUser = user;
-    demoBalance = user.demoBalance ?? 10000;
-    liveBalance = user.liveBalance ?? 0;
-    localStorage.setItem(SESSION_KEY, user.email);
-    const first = (user.name || 'trader').trim().split(' ').shift();
-    document.getElementById('hdrName').textContent = first.toLowerCase();
-    const phoneEl = document.getElementById('mpesaPhone');
-    if (phoneEl && user.phone) phoneEl.value = user.phone;
-    document.getElementById('gate').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    updateUI();
-    drawCandles();
-  }
-
-  function logoutUser() {
-    scannerActive = false; localStorage.removeItem(SESSION_KEY); currentUser = null;
-    document.getElementById('authPin').value = '';
-    document.getElementById('app').classList.add('hidden');
-    document.getElementById('gate').classList.remove('hidden');
-  }
-
-  function showTab(tab) {
-    ['term', 'cashier', 'api'].forEach(t => {
-      const cap = t.charAt(0).toUpperCase() + t.slice(1);
-      document.getElementById('tab' + cap).classList.toggle('hidden', t !== tab);
-      document.getElementById('nav' + cap).style.color = (t === tab) ? 'var(--blue)' : 'var(--muted)';
-    });
-    updateUI();
-  }
-
-  function setMode(mode) {
-    if (mode === 'LIVE' && !derivToken && liveBalance <= 0) {
-      showTab('cashier');
-      return showMsg('cashierMsg', 'Deposit via M-Pesa or link Deriv API to fund REAL wallet.', '');
-    }
-    tradeMode = mode; const isDemo = mode === 'DEMO';
-    document.getElementById('btnDemo').style.background = isDemo ? 'var(--green)' : 'var(--bg)';
-    document.getElementById('btnDemo').style.color = isDemo ? '#042f1e' : 'var(--muted)';
-    document.getElementById('btnLive').style.background = !isDemo ? 'var(--gold)' : 'var(--bg)';
-    document.getElementById('btnLive').style.color = !isDemo ? '#111827' : 'var(--muted)';
-    updateUI();
-  }
-
-  function updateTargetUI() {
-    const stake = parseFloat(document.getElementById('tradeStake').value) || 0;
-    document.getElementById('valTarget').textContent = '+$' + (stake * 1.95).toFixed(2);
-  }
-
-  function updateUI() {
-    const bal = tradeMode === 'DEMO' ? demoBalance : liveBalance;
-    document.getElementById('valBal').textContent = '$' + bal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('cashierBal').textContent = '$' + liveBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const pnlEl = document.getElementById('valPnl');
-    pnlEl.textContent = (sessionPnl >= 0 ? '+$' : '-$') + Math.abs(sessionPnl).toFixed(2);
-    pnlEl.style.color = sessionPnl >= 0 ? 'var(--green)' : 'var(--red)';
-  }
-
-  function setCashierMode(mode) {
-    hideMsg('cashierMsg'); const isDep = mode === 'deposit';
-    document.getElementById('btnCashDep').classList.toggle('active', isDep);
-    document.getElementById('btnCashWit').classList.toggle('active', !isDep);
-    document.getElementById('boxDeposit').classList.toggle('hidden', !isDep);
-    document.getElementById('boxWithdraw').classList.toggle('hidden', isDep);
-  }
-
-  function calcKesToUsd() { document.getElementById('depUsdPreview').textContent = '$' + ((parseFloat(document.getElementById('depKes').value) || 0) / KES_RATE).toFixed(2) + ' USD'; }
-  function calcUsdToKes() { document.getElementById('witKesPreview').textContent = 'KES ' + Math.round((parseFloat(document.getElementById('witUsd').value) || 0) * KES_RATE).toLocaleString(); }
-
-  function processDeposit() {
-    const phone = document.getElementById('mpesaPhone').value.trim(), kes = parseFloat(document.getElementById('depKes').value);
-    if (!/^(07|01|\+254)\d{8,9}$/.test(phone)) return showMsg('cashierMsg', 'Enter a valid Safaricom M-Pesa phone number.', 'err');
-    if (isNaN(kes) || kes < 100) return showMsg('cashierMsg', 'Minimum deposit is KES 100.', 'err');
-    const usd = +(kes / KES_RATE).toFixed(2);
-    showMsg('cashierMsg', `📲 STK Push sent to ${phone} for KES ${kes.toLocaleString()}...`, '');
-    setTimeout(() => {
-      liveBalance = +(liveBalance + usd).toFixed(2); persistBalances();
-      ledger.unshift({ label: `M-Pesa Deposit (${phone})`, sub: new Date().toLocaleTimeString(), amount: usd });
-      renderLedger(); updateUI();
-      showMsg('cashierMsg', `✅ Confirmed! +$${usd.toFixed(2)} credited to REAL wallet.`, 'ok');
-    }, 2000);
-  }
-
-  function processWithdraw() {
-    const phone = document.getElementById('mpesaPhone').value.trim(), usd = parseFloat(document.getElementById('witUsd').value);
-    if (!/^(07|01|\+254)\d{8,9}$/.test(phone)) return showMsg('cashierMsg', 'Enter a valid Safaricom M-Pesa phone number.', 'err');
-    if (isNaN(usd) || usd < 2) return showMsg('cashierMsg', 'Minimum withdrawal is $2.00 USD.', 'err');
-    if (usd > liveBalance) return showMsg('cashierMsg', 'Insufficient REAL wallet balance.', 'err');
-    const kes = Math.round(usd * KES_RATE);
-    showMsg('cashierMsg', `⏳ Sending KES ${kes.toLocaleString()} to ${phone}...`, '');
-    setTimeout(() => {
-      liveBalance = +(liveBalance - usd).toFixed(2); persistBalances();
-      ledger.unshift({ label: `M-Pesa Withdrawal (${phone})`, sub: new Date().toLocaleTimeString(), amount: -usd });
-      renderLedger(); updateUI();
-      showMsg('cashierMsg', `✅ Sent KES ${kes.toLocaleString()} ($${usd.toFixed(2)}) to ${phone}!`, 'ok');
-    }, 2000);
-  }
-
-  function toggleScanner() {
-    scannerActive = !scannerActive;
-    const btn = document.getElementById('btnScanner');
-    if (scannerActive) {
-      btn.textContent = '⏹ STOP AI CANDLE SCANNER'; btn.style.borderColor = 'var(--red)'; btn.style.background = 'rgba(239,68,68,0.14)'; btn.style.color = 'var(--red)';
-      showMsg('tradeMsg', '🤖 AI SCANNER ACTIVE • WATCHING 5-TICK RSI-7 & EMA-10...', '');
+    if (mode === 'reg') {
+      const name = $('inName').value.trim(), phone = $('inPhone').value.trim();
+      if (!name) return note('authAlert', 'Enter your full name.', 'err');
+      if (db[email]) return note('authAlert', 'Email exists. Use PIN Unlock.', 'err');
+      db[email] = { name, email, phone, pin, demoBal: 10000, realBal: 0 };
+      saveDB(db);
+      enterTerminal(db[email]);
     } else {
-      btn.textContent = '🤖 START AI CANDLE SCANNER (FREE)'; btn.style.borderColor = 'var(--green)'; btn.style.background = 'rgba(16,185,129,0.12)'; btn.style.color = 'var(--green)';
-      showMsg('tradeMsg', 'Scanner paused.', '');
+      if (!db[email]) return note('authAlert', 'Account not found. Tap Create Account.', 'err');
+      if (db[email].pin !== pin) return note('authAlert', 'Incorrect 6-digit PIN.', 'err');
+      enterTerminal(db[email]);
     }
   }
 
-  function placeTrade(direction, isAuto = false) {
-    if (tradeInProgress) return;
-    const stake = parseFloat(document.getElementById('tradeStake').value);
-    if (isNaN(stake) || stake <= 0) return showMsg('tradeMsg', 'Enter a valid stake.', 'err');
-    const bal = tradeMode === 'DEMO' ? demoBalance : liveBalance;
-    if (stake > bal) { if (scannerActive) toggleScanner(); return showMsg('tradeMsg', 'Insufficient ' + tradeMode + ' balance.', 'err'); }
-
-    tradeInProgress = true; const entry = currentPrice;
-    showMsg('tradeMsg', `${isAuto ? '🤖 AI' : '⚡ MANUAL'}: ${direction} ($${stake.toFixed(2)}) @ ${entry.toFixed(2)}...`, '');
-
-    setTimeout(() => {
-      const exit = currentPrice;
-      const won = (direction === 'RISE' && exit >= entry) || (direction === 'FALL' && exit < entry);
-      const profit = won ? +(stake * 0.95).toFixed(2) : -stake;
-      if (tradeMode === 'DEMO') demoBalance = +(demoBalance + profit).toFixed(2); else liveBalance = +(liveBalance + profit).toFixed(2);
-      sessionPnl = +(sessionPnl + profit).toFixed(2);
-      persistBalances();
-      ledger.unshift({ label: `R_100 ${direction}`, sub: `${tradeMode} • ${new Date().toLocaleTimeString()}`, amount: profit });
-      renderLedger(); updateUI(); tradeInProgress = false;
-
-      const tp = parseFloat(document.getElementById('inpTp').value) || 9999, sl = parseFloat(document.getElementById('inpSl').value) || 9999;
-      if (scannerActive && sessionPnl >= tp) { toggleScanner(); return showMsg('tradeMsg', `🎯 TAKE PROFIT HIT (+$${sessionPnl.toFixed(2)})!`, 'ok'); }
-      if (scannerActive && sessionPnl <= -sl) { toggleScanner(); return showMsg('tradeMsg', `🛑 STOP LOSS HIT (-$${Math.abs(sessionPnl).toFixed(2)}).`, 'err'); }
-      if (won) showMsg('tradeMsg', `✅ 5-TICK WIN (+$${profit.toFixed(2)})`, 'ok'); else showMsg('tradeMsg', `❌ 5-TICK LOSS (-$${stake.toFixed(2)})`, 'err');
-    }, 3500);
-  }
-
-  function renderLedger() {
-    const list = document.getElementById('histList'); if (!ledger.length) return;
-    list.innerHTML = ledger.map(t => `<div class="row-item"><div><strong>${t.label}</strong> <span style="color:var(--muted);font-size:10px;">(${t.sub})</span></div><div style="font-weight:800;color:${t.amount >= 0 ? 'var(--green)' : 'var(--red)'};">${t.amount >= 0 ? '+$' + t.amount.toFixed(2) : '-$' + Math.abs(t.amount).toFixed(2)}</div></div>`).join('');
-  }
-
-  function connectDerivApi() {
-    const token = document.getElementById('derivToken').value.trim();
-    if (token.length < 10) return showMsg('apiMsg', 'Paste a valid Deriv API token.', 'err');
-    derivToken = token; if (liveBalance <= 0) liveBalance = 250.00;
-    persistBalances(); updateUI();
-    showMsg('apiMsg', 'Deriv API connected! Switch to REAL at the top.', 'ok');
-  }
-
-  function calcRsi7() {
-    if (candles.length < 8) return 50.0;
-    let gains = 0, losses = 0;
-    for (let i = candles.length - 7; i < candles.length; i++) {
-      const diff = candles[i].c - candles[i - 1].c;
-      if (diff >= 0) gains += diff; else losses -= diff;
+  function syncWallet() {
+    if (!user) return;
+    const db = getDB();
+    if (db[user.email]) {
+      db[user.email].demoBal = demoBal;
+      db[user.email].realBal = realBal;
+      saveDB(db);
     }
-    return losses === 0 ? 92.0 : +(100 - (100 / (1 + (gains / losses)))).toFixed(1);
   }
 
-  function drawCandles() {
-    const canvas = document.getElementById('chartCanvas'); if (!canvas) return;
-    const ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
+  function enterTerminal(u) {
+    user = u; demoBal = u.demoBal ?? 10000; realBal = u.realBal ?? 0;
+    localStorage.setItem(SES_KEY, u.email);
+    $('userTag').textContent = (u.name || 'trader').trim().split(' ').shift().toLowerCase();
+    if (u.phone) $('mpesaNum').value = u.phone;
+    $('authScreen').classList.add('hide');
+    $('mainScreen').classList.remove('hide');
+    refreshStats(); refreshSniperBtn(); startLiveFeed();
+  }
 
-    const liveCandle = { o: tickBuffer[0], h: Math.max(...tickBuffer), l: Math.min(...tickBuffer), c: tickBuffer[tickBuffer.length - 1] };
-    const allCandles = [...candles.slice(-22), liveCandle];
-    const maxP = Math.max(...allCandles.map(c => c.h)) + 0.3, minP = Math.min(...allCandles.map(c => c.l)) - 0.3;
-    const range = maxP - minP || 1, toY = p => h - 16 - ((p - minP) / range) * (h - 32);
+  function lockVault() {
+    armed = false; localStorage.removeItem(SES_KEY); user = null;
+    $('inPin').value = '';
+    $('mainScreen').classList.add('hide');
+    $('authScreen').classList.remove('hide');
+  }
 
-    ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
-    for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-
-    const ema = +(allCandles.slice(-10).reduce((a, b) => a + b.c, 0) / Math.min(10, allCandles.length)).toFixed(2);
-    document.getElementById('valEma').textContent = ema.toFixed(2);
-    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#94a3b8';
-    ctx.beginPath(); ctx.moveTo(0, toY(ema)); ctx.lineTo(w, toY(ema)); ctx.stroke(); ctx.restore();
-
-    const step = (w - 24) / allCandles.length, bodyW = Math.max(6, step * 0.58);
-    allCandles.forEach((c, i) => {
-      const x = 12 + i * step + step / 2, isBull = c.c >= c.o;
-      ctx.strokeStyle = ctx.fillStyle = isBull ? '#10b981' : '#ef4444'; ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.moveTo(x, toY(c.h)); ctx.lineTo(x, toY(c.l)); ctx.stroke();
-      const topY = toY(Math.max(c.o, c.c)), botY = toY(Math.min(c.o, c.c));
-      ctx.fillRect(x - bodyW / 2, topY, bodyW, Math.max(2, botY - topY));
+  function openView(v) {
+    ['Trade', 'Cashier', 'Api'].forEach(k => {
+      $('view' + k).classList.toggle('hide', k !== v);
+      $('n' + k).classList.toggle('on', k === v);
     });
+    refreshStats();
   }
 
-  setInterval(() => {
-    const delta = (Math.random() - 0.5) * 1.1;
-    currentPrice = +(currentPrice + delta).toFixed(2);
-    tickBuffer.push(currentPrice);
-    if (tickBuffer.length >= 5) {
-      candles.push({ o: tickBuffer[0], h: Math.max(...tickBuffer), l: Math.min(...tickBuffer), c: tickBuffer[tickBuffer.length - 1] });
-      if (candles.length > 40) candles.shift();
-      tickBuffer = [currentPrice];
+  function setAcct(a) {
+    if (a === 'REAL' && !apiTok && realBal <= 0) {
+      openView('Cashier');
+      return note('cashAlert', 'Deposit via M-Pesa or link Deriv API first.', '');
     }
-    const spotEl = document.getElementById('valSpot');
-    if (spotEl) { spotEl.textContent = currentPrice.toFixed(2); spotEl.style.color = delta >= 0 ? 'var(--green)' : 'var(--red)'; }
+    acct = a;
+    $('mDemo').style.background = a === 'DEMO' ? '#10b981' : '#090d16';
+    $('mDemo').style.color = a === 'DEMO' ? '#052e16' : '#94a3b8';
+    $('mReal').style.background = a === 'REAL' ? '#f59e0b' : '#090d16';
+    $('mReal').style.color = a === 'REAL' ? '#111827' : '#94a3b8';
+    refreshStats();
+  }
 
-    const rsi = calcRsi7(), rsiEl = document.getElementById('valRsi'), sigEl = document.getElementById('valSig');
-    if (rsiEl && sigEl) {
-      rsiEl.textContent = rsi.toFixed(1);
-      if (rsi <= 28) {
-        rsiEl.style.color = sigEl.style.color = 'var(--green)'; sigEl.textContent = 'OVERSOLD REBOUND';
-        if (scannerActive && !tradeInProgress) placeTrade('RISE', true);
-      } else if (rsi >= 72) {
-        rsiEl.style.color = sigEl.style.color = 'var(--red)'; sigEl.textContent = 'OVERBOUGHT DROP';
-        if (scannerActive && !tradeInProgress) placeTrade('FALL', true);
+  function refreshStats() {
+    const b = acct === 'DEMO' ? demoBal : realBal;
+    $('balTxt').textContent = '$' + b.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    $('realBalTxt').textContent = '$' + realBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    $('pnlTxt').textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+    $('pnlTxt').style.color = pnl >= 0 ? '#10b981' : '#ef4444';
+  }
+
+  function setCashTab(t) {
+    $('cashAlert').classList.add('hide');
+    $('depPanel').classList.toggle('hide', t !== 'dep');
+    $('witPanel').classList.toggle('hide', t !== 'wit');
+    $('cDepBtn').className = t === 'dep' ? 'btn-blue' : '';
+    $('cWitBtn').className = t === 'wit' ? 'btn-blue' : '';
+  }
+
+  function doDeposit() {
+    const num = $('mpesaNum').value.trim(), kes = parseFloat($('kesIn').value);
+    if (!/^(07|01|\+254)\d{8,9}$/.test(num)) return note('cashAlert', 'Enter valid Safaricom number.', 'err');
+    if (isNaN(kes) || kes < 100) return note('cashAlert', 'Minimum deposit is KES 100.', 'err');
+    const usd = +(kes / RATE).toFixed(2);
+    note('cashAlert', `📲 STK Push sent to ${num} for KES ${kes}...`, '');
+    setTimeout(() => {
+      realBal = +(realBal + usd).toFixed(2); syncWallet();
+      logs.unshift({ t: `M-Pesa Deposit (${num})`, v: usd }); renderLogs(); refreshStats();
+      note('cashAlert', `✅ Credited +$${usd.toFixed(2)} to REAL wallet.`, 'ok');
+    }, 1800);
+  }
+
+  function doWithdraw() {
+    const num = $('mpesaNum').value.trim(), usd = parseFloat($('usdIn').value);
+    if (!/^(07|01|\+254)\d{8,9}$/.test(num)) return note('cashAlert', 'Enter valid Safaricom number.', 'err');
+    if (isNaN(usd) || usd < 2 || usd > realBal) return note('cashAlert', 'Invalid amount or insufficient REAL balance.', 'err');
+    note('cashAlert', `⏳ Sending KES ${Math.round(usd * RATE)} to ${num}...`, '');
+    setTimeout(() => {
+      realBal = +(realBal - usd).toFixed(2); syncWallet();
+      logs.unshift({ t: `M-Pesa Withdraw (${num})`, v: -usd }); renderLogs(); refreshStats();
+      note('cashAlert', `✅ Sent KES ${Math.round(usd * RATE)} to ${num}!`, 'ok');
+    }, 1800);
+  }
+
+  function renderLogs() {
+    $('ledgerBox').innerHTML = logs.map(x => `<div class="pill row" style="margin-bottom:5px;padding:7px 10px;"><span>${x.t}</span><strong style="color:${x.v >= 0 ? '#10b981' : '#ef4444'}">${x.v >= 0 ? '+$' + x.v.toFixed(2) : '-$' + Math.abs(x.v).toFixed(2)}</strong></div>`).join('');
+  }
+
+  function saveApiTok() {
+    const tok = $('apiTokIn').value.trim();
+    if (tok.length < 10) return note('apiAlert', 'Paste valid Deriv API token.', 'err');
+    apiTok = tok; if (realBal <= 0) realBal = 250; syncWallet(); refreshStats();
+    note('apiAlert', 'Deriv API linked! Switch to REAL above.', 'ok');
+  }
+
+  let safeToArm = false;
+  function refreshSniperBtn() {
+    const max = parseInt($('maxSnipeIn').value, 10);
+    const btn = $('sniperBtn');
+    btn.textContent = armed ? `⏹ STOP SNIPER PRO (${snipes}/${max})` : `🎯 START AI SNIPER PRO (${snipes}/${max})`;
+    btn.className = armed ? 'btn-red' : 'btn-green';
+  }
+
+  function toggleSniper() {
+    const max = parseInt($('maxSnipeIn').value, 10);
+    if (!armed) {
+      if (!safeToArm) return note('tradeAlert', '⚠️ WAIT: Market trending. Wait for RSI 35–65 & EMA-10 range!', 'err');
+      if (snipes >= max) snipes = 0;
+      armed = true;
+      note('tradeAlert', `🎯 SNIPER ARMED • WAITING FOR EXTREME RSI + REVERSAL TICK (MAX ${max})...`, '');
+    } else {
+      armed = false;
+      note('tradeAlert', 'Sniper paused.', '');
+    }
+    refreshSniperBtn();
+  }
+
+  function execTrade(dir, auto = false) {
+    if (busy || !spot) return;
+    const stk = parseFloat($('stakeIn').value);
+    const bal = acct === 'DEMO' ? demoBal : realBal;
+    if (isNaN(stk) || stk <= 0 || stk > bal) { armed = false; refreshSniperBtn(); return note('tradeAlert', 'Invalid stake or balance.', 'err'); }
+
+    busy = true; const entry = spot; let count = 0;
+    if (auto) { snipes++; refreshSniperBtn(); }
+    note('tradeAlert', `${auto ? `🎯 SNIPER #${snipes}` : '⚡ MANUAL'}: ${dir} ($${stk}) @ ${entry.toFixed(2)}...`, '');
+
+    const timer = setInterval(() => {
+      if (spot !== prevSpot) count++;
+      if (count >= 5) {
+        clearInterval(timer);
+        const won = (dir === 'RISE' && spot > entry) || (dir === 'FALL' && spot < entry);
+        const net = won ? +(stk * 2.0).toFixed(2) : -stk;
+        if (acct === 'DEMO') demoBal = +(demoBal + net).toFixed(2); else realBal = +(realBal + net).toFixed(2);
+        pnl = +(pnl + net).toFixed(2); syncWallet();
+        logs.unshift({ t: `R_100 ${dir} (${acct})`, v: net }); renderLogs(); refreshStats(); busy = false;
+
+        const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999;
+        const max = parseInt($('maxSnipeIn').value, 10);
+        if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
+          armed = false; refreshSniperBtn();
+          return note('tradeAlert', `🛑 SNIPER STOPPED • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
+        }
+        note('tradeAlert', won ? `✅ 5-TICK WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
+      }
+    }, 450);
+  }
+
+  function getRsi() {
+    if (bars.length < 8) return 50;
+    let g = 0, l = 0;
+    for (let i = bars.length - 7; i < bars.length; i++) {
+      const d = bars[i].c - bars[i - 1].c;
+      if (d >= 0) g += d; else l -= d;
+    }
+    return l === 0 ? 92 : +(100 - (100 / (1 + g / l))).toFixed(1);
+  }
+
+  function renderChart() {
+    const cv = $('candleCanvas'); if (!cv || !ticks.length) return;
+    const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
+    ctx.clearRect(0, 0, w, h);
+    const live = { o: ticks, h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] };
+    const list = [...bars.slice(-20), live];
+    const hi = Math.max(...list.map(b => b.h)) + 0.25, lo = Math.min(...list.map(b => b.l)) - 0.25;
+    const yOf = p => h - 14 - ((p - lo) / (hi - lo || 1)) * (h - 28);
+
+    const ema = +(list.slice(-10).reduce((s, b) => s + b.c, 0) / Math.min(10, list.length)).toFixed(2);
+    $('emaTxt').textContent = ema.toFixed(2);
+    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#64748b';
+    ctx.beginPath(); ctx.moveTo(0, yOf(ema)); ctx.lineTo(w, yOf(ema)); ctx.stroke(); ctx.restore();
+
+    const step = (w - 20) / list.length, bw = Math.max(6, step * 0.55);
+    list.forEach((b, i) => {
+      const x = 10 + i * step + step / 2, up = b.c >= b.o;
+      ctx.strokeStyle = ctx.fillStyle = up ? '#10b981' : '#ef4444'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, yOf(b.h)); ctx.lineTo(x, yOf(b.l)); ctx.stroke();
+      ctx.fillRect(x - bw / 2, yOf(Math.max(b.o, b.c)), bw, Math.max(2, Math.abs(yOf(b.o) - yOf(b.c))));
+    });
+    return ema;
+  }
+
+  function onTick(q) {
+    prevSpot = spot || q;
+    const step = +(q - prevSpot).toFixed(4);
+    spot = q; ticks.push(spot);
+    if (ticks.length >= 5) {
+      bars.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
+      if (bars.length > 40) bars.shift();
+      ticks = [spot];
+    }
+    $('spotTxt').textContent = spot.toFixed(2);
+    $('spotTxt').style.color = step >= 0 ? '#10b981' : '#ef4444';
+
+    const ema = !$('mainScreen').classList.contains('hide') ? renderChart() : spot;
+    const rsi = getRsi();
+    $('rsiTxt').textContent = rsi.toFixed(1);
+
+    if (bars.length >= 8) {
+      safeToArm = (rsi >= 35 && rsi <= 65 && Math.abs(spot - (ema || spot)) <= 1.8);
+      const rb = $('regimeBox');
+      rb.textContent = safeToArm ? '✅ OPTIMAL RANGE (RSI 35–65 & NEAR EMA): SAFE TO ARM' : '⚠️ STRONG TREND / EXTREME RSI: DO NOT START YET';
+      rb.className = 'alert ' + (safeToArm ? 'ok' : 'err');
+
+      if (rsi <= 25 && spot < ema && step > 0 && lastStep <= 0) {
+        $('sigTxt').textContent = '🎯 SNIPER RISE'; $('sigTxt').style.color = '#10b981';
+        if (armed && !busy) execTrade('RISE', true);
+      } else if (rsi >= 75 && spot > ema && step < 0 && lastStep >= 0) {
+        $('sigTxt').textContent = '🎯 SNIPER FALL'; $('sigTxt').style.color = '#ef4444';
+        if (armed && !busy) execTrade('FALL', true);
       } else {
-        rsiEl.style.color = 'var(--gold)'; sigEl.style.color = 'var(--blue)'; sigEl.textContent = 'SCANNING MARKET';
+        $('sigTxt').textContent = 'LIVE R_100 FEED'; $('sigTxt').style.color = '#3b82f6';
       }
     }
-    if (!document.getElementById('app').classList.contains('hidden')) drawCandles();
-  }, 900);
+    lastStep = step;
+  }
+
+  function startLiveFeed() {
+    const ws = new WebSocket('wss://://derivws.com');
+    ws.onopen = () => ws.send(JSON.stringify({ ticks_history: 'R_100', count: 50, end: 'latest', style: 'ticks', subscribe: 1 }));
+    ws.onmessage = e => {
+      const d = JSON.parse(e.data);
+      if (d.history?.prices) {
+        bars = []; ticks = [];
+        d.history.prices.forEach(p => {
+          ticks.push(+p);
+          if (ticks.length >= 5) { bars.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] }); ticks = [+p]; }
+        });
+        spot = +d.history.prices.at(-1); renderChart();
+      } else if (d.tick) onTick(+d.tick.quote);
+    };
+    ws.onclose = () => setTimeout(startLiveFeed, 3000);
+  }
 
   window.addEventListener('DOMContentLoaded', () => {
-    const savedEmail = localStorage.getItem(SESSION_KEY), users = getUsers();
-    if (savedEmail && users[savedEmail]) launchApp(users[savedEmail]);
+    const ses = localStorage.getItem(SES_KEY), db = getDB();
+    if (ses && db[ses]) enterTerminal(db[ses]);
   });
 </script>
 </body>
