@@ -10,14 +10,18 @@
     background: #070b14; color: #f1f5f9;
     font-family: system-ui, -apple-system, sans-serif;
     min-height: 100dvh; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; padding: 12px 12px 68px;
+    justify-content: space-between; align-items: center; padding: 8px 8px 60px;
   }
   .hide { display: none !important; }
   .box {
-    width: 100%; max-width: 460px; background: #111827;
-    border: 1px solid #1f2937; border-radius: 16px; padding: 16px;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+    width: 100%; max-width: 580px; flex: 1;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: #111827; border: 1px solid #1f2937;
+    border-radius: 14px; padding: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
   }
+  #authScreen { flex: none; margin: auto; max-width: 440px; padding: 20px; }
+  #viewTrade { flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
   .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -33,14 +37,15 @@
   .btn-green { background: #10b981; color: #052e16; }
   .btn-red { background: #ef4444; color: #fff; }
   .btn-gold { background: #f59e0b; color: #111827; }
-  .alert { margin-top: 8px; padding: 8px 10px; border-radius: 8px; font-size: 12px; background: #1e293b; color: #e2e8f0; }
+  .alert { margin-top: 4px; padding: 8px 10px; border-radius: 8px; font-size: 12px; background: #1e293b; color: #e2e8f0; }
   .alert.ok { background: rgba(16,185,129,0.16); color: #6ee7b7; border: 1px solid #059669; }
   .alert.err { background: rgba(239,68,68,0.16); color: #fca5a5; border: 1px solid #dc2626; }
-  canvas { width: 100%; height: 185px; background: #090d16; border-radius: 10px; display: block; margin-top: 6px; }
+  canvas { width: 100%; height: 245px; background: #090d16; border-radius: 10px; display: block; margin-top: 6px; }
   .nav { position: fixed; bottom: 0; left: 0; right: 0; background: #111827; border-top: 1px solid #1f2937; display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 0; }
   .nav button { background: none; color: #94a3b8; padding: 4px; font-size: 12px; }
   .nav button.on { color: #3b82f6; }
 </style>
+
 </head>
 <body>
 
@@ -118,10 +123,12 @@
       <strong id="realBalTxt" style="color:#10b981;">$0.00</strong>
     </div>
        <div class="grid2" style="margin-bottom:8px;">
-      <a href="https://deriv.com" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:#059669;color:#fff;padding:10px 6px;border-radius:9px;font-weight:800;font-size:12px;">
+         <a href="https://home.deriv.com/dashboard/login" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:#059669;color:#fff;padding:10px 6px;border-radius:9px;font-weight:800;font-size:12px;">
+
         🌐 Deriv Deposit ($5 Min)
       </a>
-      <a href="https://deriv.com" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:#d97706;color:#fff;padding:10px 6px;border-radius:9px;font-weight:800;font-size:12px;">
+          <a href="https://home.deriv.com/dashboard/login"target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;background:#d97706;color:#fff;padding:10px 6px;border-radius:9px;font-weight:800;font-size:12px;">
+
         💸 Deriv Withdraw ($5 Min)
       </a>
     </div>
@@ -140,7 +147,20 @@
       <button type="button" class="btn-gold" style="margin-top:8px;" onclick="doWithdraw()">💸 Withdraw to M-Pesa</button>
     </div>
     <div id="cashAlert" class="alert hide"></div>
-    <div id="ledgerBox" style="margin-top:10px;max-height:140px;overflow-y:auto;"></div>
+        <div style="margin-top:12px;border-top:1px solid #1f2937;padding-top:10px;">
+      <div class="row" style="margin-bottom:6px;">
+        <strong style="font-size:12px;">Trade &amp; Wallet History</strong>
+        <span id="histNetTxt" style="font-size:12px;font-weight:800;color:#10b981;">+$0.00 (0W / 0L)</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px;">
+        <button type="button" id="fDay" class="btn-blue" style="padding:5px;font-size:10px;" onclick="setHistFilter('day')">Today</button>
+        <button type="button" id="fWeek" style="padding:5px;font-size:10px;background:#090d16;color:#94a3b8;" onclick="setHistFilter('week')">Weekly</button>
+        <button type="button" id="fMonth" style="padding:5px;font-size:10px;background:#090d16;color:#94a3b8;" onclick="setHistFilter('month')">Monthly</button>
+        <button type="button" id="fAll" style="padding:5px;font-size:10px;background:#090d16;color:#94a3b8;" onclick="setHistFilter('all')">All</button>
+      </div>
+      <div id="ledgerBox" style="max-height:175px;overflow-y:auto;"></div>
+    </div>
+
   </div>
 
   <div id="viewApi" class="hide">
@@ -198,20 +218,26 @@
     }
   }
 
-  function syncWallet() {
+    function syncWallet() {
     if (!user) return;
     const db = getDB();
-    if (db[user.email]) { db[user.email].demoBal = demoBal; db[user.email].realBal = realBal; saveDB(db); }
+    if (db[user.email]) {
+      db[user.email].demoBal = demoBal;
+      db[user.email].realBal = realBal;
+      db[user.email].logs = logs;
+      saveDB(db);
+    }
   }
 
   function enterTerminal(u) {
-    user = u; demoBal = u.demoBal ?? 10000; realBal = u.realBal ?? 0;
+    user = u; demoBal = u.demoBal ?? 10000; realBal = u.realBal ?? 0; logs = u.logs || [];
     localStorage.setItem(SES_KEY, u.email);
     $('userTag').textContent = (u.name || 'trader').trim().split(' ').shift().toLowerCase();
     if (u.phone) $('mpesaNum').value = u.phone;
     $('authScreen').classList.add('hide'); $('mainScreen').classList.remove('hide');
-    refreshStats(); refreshSniperBtn(); connectRealDeriv();
+    refreshStats(); refreshSniperBtn(); renderLogs(); connectRealDeriv();
   }
+
 
   function lockVault() {
     armed = false; localStorage.removeItem(SES_KEY); user = null;
@@ -262,7 +288,8 @@
     note('cashAlert', `📲 STK Push sent to ${num} for KES ${kes}...`, '');
     setTimeout(() => {
       realBal = +(realBal + usd).toFixed(2); syncWallet();
-      logs.unshift({ t: `M-Pesa Deposit (${num})`, v: usd }); renderLogs(); refreshStats();
+         addLog(`M-Pesa Deposit (${num})`, usd);
+ refreshStats();
       note('cashAlert', `✅ Credited +$${usd.toFixed(2)} to REAL wallet.`, 'ok');
     }, 1800);
   }
@@ -274,15 +301,79 @@
     note('cashAlert', `⏳ Sending KES ${Math.round(usd * RATE)} to ${num}...`, '');
     setTimeout(() => {
       realBal = +(realBal - usd).toFixed(2); syncWallet();
-      logs.unshift({ t: `M-Pesa Withdraw (${num})`, v: -usd }); renderLogs(); refreshStats();
+          addLog(`M-Pesa Withdraw (${num})`, -usd); refreshStats();
+
       note('cashAlert', `✅ Sent KES ${Math.round(usd * RATE)} to ${num}!`, 'ok');
     }, 1800);
   }
 
   
+  
+  let histFilter = 'day';
+
+  function addLog(t, v) {
+    logs.unshift({ t, v, ts: Date.now() });
+    if (logs.length > 200) logs.pop();
+    syncWallet();
+    renderLogs();
+  }
+
+  function setHistFilter(f) {
+    histFilter = f;
+    ['day', 'week', 'month', 'all'].forEach(k => {
+      const btn = $('f' + k.toUpperCase() + k.slice(1));
+      if (btn) {
+        btn.style.background = k === f ? '#2563eb' : '#090d16';
+        btn.style.color = k === f ? '#fff' : '#94a3b8';
+      }
+    });
+    renderLogs();
+  }
+
   function renderLogs() {
-  $('ledgerBox').innerHTML = logs.map(x => `<div class="pill row" style="margin-bottom:5px;padding:7px 10px;"><span>${x.t}</span><strong style="color:${x.v >= 0 ? '#10b981' : '#ef4444'}">${x.v >= 0 ? '+$' + x.v.toFixed(2) : '-$' + Math.abs(x.v).toFixed(2)}</strong></div>`).join('');
-}
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfWeek = startOfDay - now.getDay() * 86400000;
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+    const filtered = logs.filter(x => {
+      const t = x.ts || Date.now();
+      if (histFilter === 'day') return t >= startOfDay;
+      if (histFilter === 'week') return t >= startOfWeek;
+      if (histFilter === 'month') return t >= startOfMonth;
+      return true;
+    });
+
+    let netSum = 0, wins = 0, losses = 0;
+    filtered.forEach(x => {
+      netSum += x.v;
+      if (x.t.includes('R_100')) { if (x.v >= 0) wins++; else losses++; }
+    });
+
+    const sumEl = $('histNetTxt');
+    if (sumEl) {
+      sumEl.textContent = `${netSum >= 0 ? '+$' : '-$'}${Math.abs(netSum).toFixed(2)} (${wins}W / ${losses}L)`;
+      sumEl.style.color = netSum >= 0 ? '#10b981' : '#ef4444';
+    }
+
+    if (!filtered.length) {
+      $('ledgerBox').innerHTML = `<div style="text-align:center;font-size:11px;color:#64748b;padding:14px;">No history recorded for this period yet.</div>`;
+      return;
+    }
+
+    $('ledgerBox').innerHTML = filtered.map(x => {
+      const dt = new Date(x.ts || Date.now());
+      const dateStr = dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+      const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return `<div class="pill row" style="margin-bottom:5px;padding:7px 10px;text-align:left;">
+        <div>
+          <div style="font-size:12px;font-weight:700;">${x.t}</div>
+          <div style="font-size:10px;color:#94a3b8;">${dateStr} • ${timeStr}</div>
+        </div>
+        <strong style="font-size:13px;color:${x.v >= 0 ? '#10b981' : '#ef4444'}">${x.v >= 0 ? '+$' + x.v.toFixed(2) : '-$' + Math.abs(x.v).toFixed(2)}</strong>
+      </div>`;
+    }).join('');
+  }
 
 
 
@@ -395,8 +486,10 @@
           realBal = +(realBal + net).toFixed(2);
           pnl = +(pnl + net).toFixed(2);
           syncWallet();
-          logs.unshift({ t: `REAL R_100 ${dir}`, v: net });
-          renderLogs(); refreshStats();
+                 addLog(`REAL R_100 ${dir}`, net);
+
+                 refreshStats();
+
           wsOrder.close(); busy = false;
 
           const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipeIn').value, 10);
@@ -424,8 +517,9 @@
         demoBal = +(demoBal + net).toFixed(2);
         pnl = +(pnl + net).toFixed(2);
         syncWallet();
-        logs.unshift({ t: `DEMO R_100 ${dir}`, v: net });
-        renderLogs(); refreshStats(); busy = false;
+               addLog(`DEMO R_100 ${dir}`, net);
+       refreshStats(); busy = false;
+
 
         const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipeIn').value, 10);
         if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
@@ -453,7 +547,8 @@
 
     const list = [...bars.slice(-20)];
     if (ticks.length) {
-      list.push({ o: ticks, h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
+      list.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
+
     }
     if (!list.length) return spot;
 
