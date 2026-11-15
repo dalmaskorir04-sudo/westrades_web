@@ -395,10 +395,10 @@
       rb.textContent = safeToArm ? '✅ OPTIMAL RANGE (RSI 35–65 & NEAR EMA): SAFE TO ARM' : '⚠️ STRONG TREND / EXTREME RSI: DO NOT START YET';
       rb.className = 'alert ' + (safeToArm ? 'ok' : 'err');
 
-      if (rsi <= 25 && spot < ema && step > 0 && lastStep <= 0) {
+      if (rsi <= 33 && spot < ema && step > 0 && lastStep <= 0) {
         $('sigTxt').textContent = '🎯 SNIPER RISE'; $('sigTxt').style.color = '#10b981';
         if (armed && !busy) execTrade('RISE', true);
-      } else if (rsi >= 75 && spot > ema && step < 0 && lastStep >= 0) {
+      } else if (rsi >= 67 && spot > ema && step < 0 && lastStep >= 0) {
         $('sigTxt').textContent = '🎯 SNIPER FALL'; $('sigTxt').style.color = '#ef4444';
         if (armed && !busy) execTrade('FALL', true);
       } else {
