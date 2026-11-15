@@ -395,14 +395,17 @@
       rb.textContent = safeToArm ? '✅ OPTIMAL RANGE (RSI 35–65 & NEAR EMA): SAFE TO ARM' : '⚠️ STRONG TREND / EXTREME RSI: DO NOT START YET';
       rb.className = 'alert ' + (safeToArm ? 'ok' : 'err');
 
-      if (rsi <= 33 && spot < ema && step > 0 && lastStep <= 0) {
-        $('sigTxt').textContent = '🎯 SNIPER RISE'; $('sigTxt').style.color = '#10b981';
+      const riseSignal = (rsi <= 35 && step > 0) || (prevSpot <= ema && spot > ema && rsi < 58);
+      const fallSignal = (rsi >= 65 && step < 0) || (prevSpot >= ema && spot < ema && rsi > 42);
+
+      if (riseSignal) {
+        $('sigTxt').textContent = '⚡ SNIPER RISE'; $('sigTxt').style.color = '#10b981';
         if (armed && !busy) execTrade('RISE', true);
-      } else if (rsi >= 67 && spot > ema && step < 0 && lastStep >= 0) {
-        $('sigTxt').textContent = '🎯 SNIPER FALL'; $('sigTxt').style.color = '#ef4444';
+      } else if (fallSignal) {
+        $('sigTxt').textContent = '⚡ SNIPER FALL'; $('sigTxt').style.color = '#ef4444';
         if (armed && !busy) execTrade('FALL', true);
       } else {
-        $('sigTxt').textContent = 'LIVE DERIV R_100'; $('sigTxt').style.color = '#3b82f6';
+        $('sigTxt').textContent = 'SCANNING SNIPER...'; $('sigTxt').style.color = '#3b82f6';
       }
     }
     lastStep = step;
