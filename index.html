@@ -266,11 +266,14 @@
   }
 
   function setAcct(a) {
-    if (a === 'REAL' && !apiTok && realBal <= 0) { openView('Cashier'); return note('cashAlert', 'Deposit via M-Pesa or link Deriv API first.', ''); }
+    
     acct = a;
     $('mDemo').style.background = a === 'DEMO' ? '#10b981' : '#090d16'; $('mDemo').style.color = a === 'DEMO' ? '#052e16' : '#94a3b8';
     $('mReal').style.background = a === 'REAL' ? '#f59e0b' : '#090d16'; $('mReal').style.color = a === 'REAL' ? '#111827' : '#94a3b8';
     refreshStats();
+    renderLogs();
+    if (a === 'REAL' && !apiTok && realBal <= 0) note('tradeAlert', '💰 Viewing REAL Account ($0.00). Link Deriv API or deposit to trade.', 'err');
+
   }
 
     
@@ -363,6 +366,10 @@
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
     const filtered = logs.filter(x => {
+           const isDemoItem = x.t.startsWith('DEMO');
+      if (acct === 'DEMO' && !isDemoItem) return false;
+      if (acct === 'REAL' && isDemoItem) return false;
+
       const t = x.ts || Date.now();
       if (histFilter === 'day') return t >= startOfDay;
       if (histFilter === 'week') return t >= startOfWeek;
