@@ -412,22 +412,33 @@
 
   let derivReady = false, derivLoginId = '';
 
-  function sendDerivReq(payload) {
-    return new Promise((resolve, reject) => {
-      const url = ['wss://ws', 'derivws', 'com/websockets/v3?app_id=1089'].join('.');
-      const sock = new WebSocket(url);
-      const timer = setTimeout(() => { sock.close(); reject(new Error('Deriv API connection timed out')); }, 8000);
-      sock.onopen = () => sock.send(JSON.stringify(payload));
-      sock.onmessage = e => {
-        clearTimeout(timer);
-        const res = JSON.parse(e.data);
-        sock.close();
-        if (res.error) reject(new Error(res.error.message));
-        else resolve(res);
-      };
-      sock.onerror = () => { clearTimeout(timer); reject(new Error('Network blocked Deriv API')); };
-    });
+    async function sendDerivReq(payload) {
+     const hosts = ['blue' + '.derivws.com', 'green' + '.derivws.com', 'ws' + '.derivws.com'];
+
+    let lastErr = 'Network blocked Deriv API';
+    for (const host of hosts) {
+      try {
+        return await new Promise((resolve, reject) => {
+          const sock = new WebSocket(`wss://${host}/websockets/v3?app_id=1089`);
+          const timer = setTimeout(() => { sock.close(); reject(new Error('Deriv API timed out')); }, 7000);
+          sock.onopen = () => sock.send(JSON.stringify(payload));
+          sock.onmessage = e => {
+            clearTimeout(timer);
+            const res = JSON.parse(e.data);
+            sock.close();
+            if (res.error) reject(new Error(res.error.message));
+            else resolve(res);
+          };
+          sock.onerror = () => { clearTimeout(timer); reject(new Error('Host unreachable')); };
+        });
+      } catch (e) {
+        lastErr = e.message || lastErr;
+        if (!lastErr.includes('unreachable') && !lastErr.includes('timed out')) throw e;
+      }
+    }
+    throw new Error(lastErr);
   }
+
 
   async function saveApiTok() {
     const tok = $('apiTokIn').value.trim();
