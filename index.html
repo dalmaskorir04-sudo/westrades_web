@@ -440,16 +440,25 @@
   }
 
 
+    const DERIV_APP_ID = '34YEOrMgwHMXDKtSL6EMV';
   async function saveApiTok() {
     const tok = $('apiTokIn').value.trim();
     if (tok.length < 10) return note('apiAlert', 'Paste a valid Deriv API token.', 'err');
     note('apiAlert', '⏳ Connecting to your Deriv account...', '');
     try {
-      const res = await sendDerivReq({ authorize: tok });
+         const r = await fetch(['https://api', 'derivws', 'com/trading/v1/options/accounts'].join('.'), {
+
+        headers: { 'Authorization': 'Bearer ' + tok, 'Deriv-App-ID': DERIV_APP_ID }
+      });
+      const json = await r.json();
+      if (!r.ok) throw new Error((json.errors && json.errors[0] && json.errors[0].message) || json.message || ('HTTP ' + r.status));
+      const list = Array.isArray(json.data) ? json.data : (json.data && json.data.accounts ? json.data.accounts : []);
+      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR')) || list[0];
+      if (!realAcc) throw new Error('No Options account found. Create an Options account on Deriv first.');
       apiTok = tok;
       derivReady = true;
-      derivLoginId = res.authorize.loginid;
-      realBal = +res.authorize.balance;
+      derivLoginId = realAcc.id || realAcc.account_id || 'OPTIONS';
+      realBal = +(realAcc.balance || 0);
       syncWallet();
       refreshStats();
       note('apiAlert', `✅ Linked (${derivLoginId}) • Live Balance: $${realBal.toFixed(2)}`, 'ok');
@@ -458,6 +467,7 @@
       note('apiAlert', '❌ Auth failed: ' + err.message, 'err');
     }
   }
+
 
   function refreshSniperBtn() {
     const max = parseInt($('maxSnipeIn').value, 10), btn = $('sniperBtn');
