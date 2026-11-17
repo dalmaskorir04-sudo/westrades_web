@@ -446,12 +446,14 @@
     if (tok.length < 10) return note('apiAlert', 'Paste a valid Deriv API token.', 'err');
     note('apiAlert', '⏳ Connecting to your Deriv account...', '');
     try {
-         const r = await fetch(['https://api', 'derivws', 'com/trading/v1/options/accounts'].join('.'), {
-
-        headers: { 'Authorization': 'Bearer ' + tok, 'Deriv-App-ID': DERIV_APP_ID }
-      });
-      const json = await r.json();
+               const base = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
+      let r = await fetch(base + '/accounts', { headers: { 'Authorization': 'Bearer ' + tok, 'Deriv-App-ID': DERIV_APP_ID } });
+      if (r.status === 404) r = await fetch(base + '/legacy/accounts', { headers: { 'Authorization': 'Bearer ' + tok, 'Deriv-App-ID': DERIV_APP_ID } });
+      const raw = await r.text();
+      let json = {};
+      try { json = JSON.parse(raw); } catch (_) { throw new Error('HTTP ' + r.status + ': ' + raw.slice(0, 80)); }
       if (!r.ok) throw new Error((json.errors && json.errors[0] && json.errors[0].message) || json.message || ('HTTP ' + r.status));
+
       const list = Array.isArray(json.data) ? json.data : (json.data && json.data.accounts ? json.data.accounts : []);
       const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR')) || list[0];
       if (!realAcc) throw new Error('No Options account found. Create an Options account on Deriv first.');
