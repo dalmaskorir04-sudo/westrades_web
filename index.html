@@ -439,8 +439,9 @@
     throw new Error(lastErr);
   }
 
+ const DERIV_APP_ID = '34YEOrMgwHMXDKtSL6EMV';
 
-    const DERIV_APP_ID = '34YEOrMgwHMXDKtSL6EMV';
+    
   async function saveApiTok() {
     const tok = $('apiTokIn').value.trim();
     if (tok.length < 10) return note('apiAlert', 'Paste a valid Deriv API token.', 'err');
