@@ -443,22 +443,56 @@
 
   const DERIV_APP_ID = '34Z1mKHavu7W7E2iembrP';
 
-  function startDerivOAuth() {
-    const authUrl = ['https://oauth', 'deriv', 'com/oauth2/authorize'].join('.') + '?app_id=' + encodeURIComponent(DERIV_APP_ID) + '&l=EN&brand=deriv';
+    async function startDerivOAuth() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const verifier = Array.from(crypto.getRandomValues(new Uint8Array(64)), b => chars[b % chars.length]).join('');
+    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    localStorage.setItem('wt_pkce_v', verifier);
+    localStorage.setItem('wt_pkce_s', state);
+    const redir = window.location.origin;
+    const authUrl = ['https://auth', 'deriv', 'com/oauth2/auth'].join('.') +
+      '?response_type=code&client_id=' + encodeURIComponent(DERIV_APP_ID) +
+      '&redirect_uri=' + encodeURIComponent(redir) +
+      '&scope=' + encodeURIComponent('trade account_manage') +
+      '&state=' + encodeURIComponent(state) +
+      '&code_challenge=' + encodeURIComponent(challenge) +
+      '&code_challenge_method=S256';
     window.location.href = authUrl;
   }
-  (function checkOAuthReturn() {
+  (async function checkOAuthReturn() {
     const p = new URLSearchParams(window.location.search);
-    for (let i = 1; i <= 6; i++) {
-      const a = p.get('acct' + i), t = p.get('token' + i);
-      if (a && t && (a.startsWith('CR') || a.startsWith('DOT') || i === 1)) {
-        localStorage.setItem('wt_oauth_acct', a);
-        localStorage.setItem('wt_oauth_tok', t);
-        if (a.startsWith('CR') || a.startsWith('DOT')) break;
+    const code = p.get('code'), st = p.get('state');
+    if (!code) return;
+    window.history.replaceState({}, '', window.location.pathname);
+    const verifier = localStorage.getItem('wt_pkce_v');
+    if (!verifier || (st && st !== localStorage.getItem('wt_pkce_s'))) return;
+    try {
+      const r = await fetch(['https://auth', 'deriv', 'com/oauth2/token'].join('.'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: DERIV_APP_ID,
+          code,
+          redirect_uri: window.location.origin,
+                 code_verifier: verifier
+
+        })
+      });
+      const j = await r.json();
+      if (j.access_token) {
+        localStorage.setItem('wt_oauth_acct', 'DERIV_OAUTH');
+        localStorage.setItem('wt_oauth_tok', j.access_token);
+        apiTok = j.access_token; derivReady = true; derivLoginId = 'DERIV_OAUTH';
+        if ($('apiTokIn')) $('apiTokIn').value = j.access_token;
+        syncWallet(); refreshStats();
+        note('apiAlert', '✅ Deriv OAuth 2.0 Linked • Ready for Live Deriv', 'ok');
       }
-    }
-    if (p.get('token1')) window.history.replaceState({}, '', window.location.pathname);
+    } catch (_) {}
   })();
+
 
     
   async function saveApiTok() {
@@ -674,28 +708,35 @@
     const rsi = getRsi();
     $('rsiTxt').textContent = rsi.toFixed(1);
 
-    if (bars.length >= 8) {
-      safeToArm = (rsi >= 35 && rsi <= 65 && Math.abs(spot - (ema || spot)) <= 1.8);
+        if (bars.length >= 8) {
+      const cls = bars.slice(-15).map(b => b.c);
+      const mean = cls.reduce((a, b) => a + b, 0) / cls.length;
+      const sd = Math.sqrt(cls.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / cls.length) || 0.25;
+      const upBand = mean + 1.8 * sd, loBand = mean - 1.8 * sd;
+      const trendOk = sd >= 0.14;
+      safeToArm = trendOk && (rsi >= 24 && rsi <= 76);
       const rb = $('regimeBox');
-      rb.textContent = safeToArm ? '✅ OPTIMAL RANGE (RSI 35–65 & NEAR EMA): SAFE TO ARM' : '⚠️ STRONG TREND / EXTREME RSI: DO NOT START YET';
-      rb.className = 'alert ' + (safeToArm ? 'ok' : 'err');
+      rb.textContent = trendOk ? `✅ OPTIMAL VOLATILITY (SD ${sd.toFixed(2)} • RSI ${rsi.toFixed(1)})` : `⚠️ LOW VOLATILITY CHOP (SD ${sd.toFixed(2)} — WAIT)`;
+      rb.className = 'alert ' + (trendOk ? 'ok' : 'err');
 
-      const riseSignal = (rsi <= 35 && step > 0) || (prevSpot <= ema && spot > ema && rsi < 58);
-      const fallSignal = (rsi >= 65 && step < 0) || (prevSpot >= ema && spot < ema && rsi > 42);
+      const riseScore = (rsi <= 32 ? 40 : (rsi <= 38 ? 20 : 0)) + (prevSpot <= loBand ? 35 : (spot < mean - sd ? 15 : 0)) + (step > 0 && lastStep <= 0 ? 21 : 0);
+      const fallScore = (rsi >= 68 ? 40 : (rsi >= 62 ? 20 : 0)) + (prevSpot >= upBand ? 35 : (spot > mean + sd ? 15 : 0)) + (step < 0 && lastStep >= 0 ? 21 : 0);
 
-      if (riseSignal) {
-        $('sigTxt').textContent = '⚡ SNIPER RISE'; $('sigTxt').style.color = '#10b981';
+      if (trendOk && riseScore >= 85) {
+        $('sigTxt').textContent = `⚡ SNIPER RISE (${riseScore}% CONF)`; $('sigTxt').style.color = '#10b981';
         if (armed && !busy) execTrade('RISE', true);
-      } else if (fallSignal) {
-        $('sigTxt').textContent = '⚡ SNIPER FALL'; $('sigTxt').style.color = '#ef4444';
+      } else if (trendOk && fallScore >= 85) {
+        $('sigTxt').textContent = `⚡ SNIPER FALL (${fallScore}% CONF)`; $('sigTxt').style.color = '#ef4444';
         if (armed && !busy) execTrade('FALL', true);
       } else {
-        $('sigTxt').textContent = 'SCANNING SNIPER...'; $('sigTxt').style.color = '#3b82f6';
+        const best = Math.max(riseScore, fallScore);
+        $('sigTxt').textContent = `🎯 SCANNING ${best}% • RSI ${rsi.toFixed(1)}`; $('sigTxt').style.color = best >= 60 ? '#f59e0b' : '#94a3b8';
       }
     }
-    lastStep = step;
+        lastStep = step;
   }
-let marketTimer = null;
+  let marketTimer = null;
+
   function runMarketStream() {
     if (marketTimer) return;
     $('sigTxt').textContent = 'LIVE R_100 STREAM';
