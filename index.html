@@ -555,75 +555,70 @@
       return note('tradeAlert', 'Invalid stake or insufficient balance.', 'err');
     }
 
-    if (acct === 'REAL') {
+        if (acct === 'REAL') {
       if (!derivReady || !apiTok) {
         armed = false; refreshSniperBtn();
-        return note('tradeAlert', '⚠️ Connect your Deriv API Token in the API tab first!', 'err');
+        return note('tradeAlert', '⚠️ Connect your Deriv OAuth login in the API tab first.', 'err');
       }
-           if (stk < 0.35) {
+      if (stk < 0.35) {
         armed = false; refreshSniperBtn();
         return note('tradeAlert', '⚠️ Deriv minimum real stake is $0.35 USD.', 'err');
       }
-
       busy = true;
       if (auto) { snipes++; refreshSniperBtn(); }
       note('tradeAlert', `🚀 SENDING REAL ORDER: ${dir} ($${stk}) TO DERIV...`, '');
 
-      const url = ['wss://ws', 'derivws', 'com/websockets/v3?app_id=1089'].join('.');
-      const wsOrder = new WebSocket(url);
-      wsOrder.onopen = () => wsOrder.send(JSON.stringify({ authorize: apiTok }));
+      const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
+      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json' };
+      const accRes = await fetch(optBase + '/accounts', { headers: hdrs });
+      const accJson = await accRes.json();
+      if (!accRes.ok) { busy = false; return note('tradeAlert', '❌ Deriv Account Error: ' + (accJson.message || accRes.status), 'err'); }
+
+      const list = Array.isArray(accJson.data) ? accJson.data : (accJson.data && accJson.data.accounts ? accJson.data.accounts : []);
+      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR')) || list[0];
+      if (!realAcc) { busy = false; return note('tradeAlert', '❌ No Real Options account found on Deriv.', 'err'); }
+
+      const accId = realAcc.id || realAcc.account_id;
+      const otpRes = await fetch(`${optBase}/accounts/${encodeURIComponent(accId)}/otp`, { method: 'POST', headers: hdrs });
+      const otpJson = await otpRes.json();
+      if (!otpRes.ok) { busy = false; return note('tradeAlert', '❌ Deriv OTP Error: ' + (otpJson.message || otpRes.status), 'err'); }
+
+      const wsUrl = (otpJson.data && (otpJson.data.url || otpJson.data.ws_url)) || otpJson.url ||
+        (['wss://api', 'derivws', 'com/trading/v1/options/ws/real?otp='].join('.') + encodeURIComponent((otpJson.data && otpJson.data.otp) || otpJson.otp || ''));
+      const wsOrder = new WebSocket(wsUrl);
+      wsOrder.onopen = () => wsOrder.send(JSON.stringify({
+        buy: '1', subscribe: 1, price: stk,
+        parameters: { amount: stk, basis: 'stake', contract_type: dir === 'RISE' ? 'CALL' : 'PUT', currency: 'USD', duration: 5, duration_unit: 't', symbol: 'R_100' }
+      }));
       wsOrder.onmessage = e => {
         const d = JSON.parse(e.data);
-        if (d.error) {
-          wsOrder.close(); busy = false;
-          return note('tradeAlert', '❌ Deriv Error: ' + d.error.message, 'err');
-        }
-        if (d.msg_type === 'authorize') {
-          wsOrder.send(JSON.stringify({
-            buy: 1,
-            subscribe: 1,
-            price: stk,
-            parameters: {
-              amount: stk,
-              basis: 'stake',
-              contract_type: dir === 'RISE' ? 'CALL' : 'PUT',
-              currency: 'USD',
-              duration: 5,
-              duration_unit: 't',
-              symbol: 'R_100'
-            }
-          }));
-        } else if (d.msg_type === 'buy') {
-          note('tradeAlert', `⚡ REAL CONTRACT LIVE (ID: ${d.buy.contract_id}) • 5 TICKS...`, '');
-        } else if (d.msg_type === 'proposal_open_contract' && d.proposal_open_contract.is_sold) {
-          const poc = d.proposal_open_contract;
-          const net = +poc.profit;
+        if (d.error) { wsOrder.close(); busy = false; return note('tradeAlert', '❌ Deriv Error: ' + d.error.message, 'err'); }
+        if (d.msg_type === 'buy') {
+          note('tradeAlert', `⚡ REAL CONTRACT LIVE (ID: ${d.buy.contract_id}) • Waiting 5 ticks...`, '');
+        } else if (d.msg_type === 'proposal_open_contract' && d.proposal_open_contract && d.proposal_open_contract.is_sold) {
+          const net = +d.proposal_open_contract.profit;
           realBal = +(realBal + net).toFixed(2);
           pnl = +(pnl + net).toFixed(2);
           syncWallet();
-                 addLog(`REAL R_100 ${dir}`, net);
-
-                 refreshStats();
-
+          addLog(`REAL R_100 ${dir}`, net);
+          refreshStats();
           wsOrder.close(); busy = false;
-
-          const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipeIn').value, 10);
+          const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipes').value) || 2;
           if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
             armed = false; refreshSniperBtn();
-            return note('tradeAlert', `🛑 REAL SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
+            return note('tradeAlert', `🔴 REAL SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
           }
           note('tradeAlert', net >= 0 ? `✅ REAL WIN (+$${net.toFixed(2)})` : `❌ REAL LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
         }
       };
-      wsOrder.onerror = () => { busy = false; note('tradeAlert', '❌ Connection error sending order to Deriv.', 'err'); };
+      wsOrder.onerror = () => { busy = false; note('tradeAlert', '❌ Connection interrupted during live order.', 'err'); };
       return;
-    }
+         }
+            busy = true; const entry = spot; let count = 0;
+   if (auto) { snipes++; refreshSniperBtn(); }
 
-    busy = true; const entry = spot; let count = 0;
-    if (auto) { snipes++; refreshSniperBtn(); }
-    note('tradeAlert', `${auto ? `🎯 SNIPER #${snipes}` : '⚡ MANUAL'}: ${dir} ($${stk}) @ ${entry.toFixed(2)} (0/5 Ticks)...`, '');
-
-    const timer = setInterval(() => {
+ 
+ const timer = setInterval(() => {
       if (spot !== prevSpot) count++;
       if (count >= 5) {
         clearInterval(timer);
