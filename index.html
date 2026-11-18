@@ -171,6 +171,8 @@
   <div id="viewApi" class="hide">
     <strong>Deriv API Link</strong>
     <p style="font-size:12px;color:#94a3b8;margin:4px 0 8px;">Paste your Deriv API token to unlock REAL account execution.</p>
+      <button type="button" class="btn-green" style="margin-bottom:10px;" onclick="startDerivOAuth()">🔗 Login with Deriv (1-Click OAuth)</button>
+
     <input id="apiTokIn" type="password" placeholder="Deriv API Token..." />
     <button type="button" class="btn-blue" style="margin-top:8px;" onclick="saveApiTok()">Connect Token</button>
     <div id="apiAlert" class="alert hide"></div>
@@ -441,6 +443,22 @@
 
   const DERIV_APP_ID = '34Z1mKHavu7W7E2iembrP';
 
+  function startDerivOAuth() {
+    const authUrl = ['https://oauth', 'deriv', 'com/oauth2/authorize'].join('.') + '?app_id=' + encodeURIComponent(DERIV_APP_ID) + '&l=EN&brand=deriv';
+    window.location.href = authUrl;
+  }
+  (function checkOAuthReturn() {
+    const p = new URLSearchParams(window.location.search);
+    for (let i = 1; i <= 6; i++) {
+      const a = p.get('acct' + i), t = p.get('token' + i);
+      if (a && t && (a.startsWith('CR') || a.startsWith('DOT') || i === 1)) {
+        localStorage.setItem('wt_oauth_acct', a);
+        localStorage.setItem('wt_oauth_tok', t);
+        if (a.startsWith('CR') || a.startsWith('DOT')) break;
+      }
+    }
+    if (p.get('token1')) window.history.replaceState({}, '', window.location.pathname);
+  })();
 
     
   async function saveApiTok() {
@@ -750,6 +768,14 @@ let marketTimer = null;
   window.addEventListener('DOMContentLoaded', () => {
     const ses = localStorage.getItem(SES_KEY), db = getDB();
     if (ses && db[ses]) enterTerminal(db[ses]);
+       const oaAcct = localStorage.getItem('wt_oauth_acct'), oaTok = localStorage.getItem('wt_oauth_tok');
+    if (oaAcct && oaTok) {
+      apiTok = oaTok; derivReady = true; derivLoginId = oaAcct;
+      if ($('apiTokIn')) $('apiTokIn').value = oaTok;
+      syncWallet(); refreshStats();
+      note('apiAlert', `✅ OAuth Linked (${derivLoginId}) • Ready for Live Deriv`, 'ok');
+    }
+
   });
 </script>
 </body>
