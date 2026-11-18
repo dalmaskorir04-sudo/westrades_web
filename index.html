@@ -813,6 +813,29 @@
     }
 
   });
+   async function refreshLiveBalance() {
+    if (!derivReady || !apiTok) return;
+    try {
+      const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
+      const r = await fetch(optBase + '/accounts', {
+        headers: { 'Authorization': 'Bearer ' + apiTok, 'Deriv-App-ID': DERIV_APP_ID }
+      });
+      if (!r.ok) return;
+      const json = await r.json();
+      const list = Array.isArray(json.data) ? json.data : (json.data && json.data.accounts ? json.data.accounts : []);
+      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR') || String(a.id || a.account_id || '').startsWith('ROT')) || list;
+      if (realAcc) {
+        derivLoginId = realAcc.id || realAcc.account_id || derivLoginId;
+        realBal = +(realAcc.balance || 0);
+        syncWallet();
+        refreshStats();
+        note('apiAlert', `✅ Linked (${derivLoginId}) • Live Balance: $${realBal.toFixed(2)}`, 'ok');
+      }
+    } catch (_) {}
+  }
+  setInterval(refreshLiveBalance, 15000);
+  setTimeout(refreshLiveBalance, 1500);
+
 </script>
 </body>
 </html>
