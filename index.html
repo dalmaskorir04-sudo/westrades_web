@@ -714,21 +714,29 @@
       rb.textContent = trendOk ? `✅ OPTIMAL VOLATILITY (SD ${sd.toFixed(2)} • RSI ${rsi.toFixed(1)})` : `⚠️ LOW VOLATILITY CHOP (SD ${sd.toFixed(2)} — WAIT)`;
       rb.className = 'alert ' + (trendOk ? 'ok' : 'err');
 
-      const riseScore = (rsi <= 32 ? 40 : (rsi <= 38 ? 20 : 0)) + (prevSpot <= loBand ? 35 : (spot < mean - sd ? 15 : 0)) + (step > 0 && lastStep <= 0 ? 21 : 0);
-      const fallScore = (rsi >= 68 ? 40 : (rsi >= 62 ? 20 : 0)) + (prevSpot >= upBand ? 35 : (spot > mean + sd ? 15 : 0)) + (step < 0 && lastStep >= 0 ? 21 : 0);
+            const emaFast = cls.slice(-6).reduce((a, b) => a + b, 0) / Math.min(6, cls.length);
+      const emaSlow = mean;
+      const upTrend = emaFast > emaSlow + (sd * 0.15);
+      const dnTrend = emaFast < emaSlow - (sd * 0.15);
 
-      if (trendOk && riseScore >= 85) {
-        $('sigTxt').textContent = `⚡ SNIPER RISE (${riseScore}% CONF)`; $('sigTxt').style.color = '#10b981';
+      const riseScore = upTrend ? ((rsi >= 42 && rsi <= 58 ? 40 : 0) + (prevSpot <= emaFast && spot > emaFast ? 35 : 0) + (spot > prevSpot ? 20 : 0)) : 0;
+      const fallScore = dnTrend ? ((rsi >= 42 && rsi <= 58 ? 40 : 0) + (prevSpot >= emaFast && spot < emaFast ? 35 : 0) + (spot < prevSpot ? 20 : 0)) : 0;
+
+      if (trendOk && riseScore >= 75) {
+        $('sigTxt').textContent = `⚡ TREND RISE (${riseScore}% CONF)`; $('sigTxt').style.color = '#10b981';
         if (armed && !busy) execTrade('RISE', true);
-      } else if (trendOk && fallScore >= 85) {
-        $('sigTxt').textContent = `⚡ SNIPER FALL (${fallScore}% CONF)`; $('sigTxt').style.color = '#ef4444';
+      } else if (trendOk && fallScore >= 75) {
+        $('sigTxt').textContent = `⚡ TREND FALL (${fallScore}% CONF)`; $('sigTxt').style.color = '#ef4444';
         if (armed && !busy) execTrade('FALL', true);
       } else {
         const best = Math.max(riseScore, fallScore);
-        $('sigTxt').textContent = `🎯 SCANNING ${best}% • RSI ${rsi.toFixed(1)}`; $('sigTxt').style.color = best >= 60 ? '#f59e0b' : '#94a3b8';
+        const dirHint = upTrend ? 'UPTREND' : (dnTrend ? 'DOWNTREND' : 'CHOP');
+        $('sigTxt').textContent = best >= 55 ? `🎯 ${dirHint} PULLBACK ${best}%` : `🎯 ${dirHint} • RSI ${rsi.toFixed(1)}`;
+        $('sigTxt').style.color = best >= 55 ? '#f59e0b' : '#94a3b8';
       }
     }
-        lastStep = step;
+    lastStep = step;
+
   }
   let marketTimer = null;
 
