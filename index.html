@@ -872,6 +872,8 @@ function connectRealDeriv() {
       reconnectTimer = setTimeout(connectRealDeriv, 5000);
     }
   })();
+ }
+
 window.addEventListener('DOMContentLoaded', () => {
  
   const ses = localStorage.getItem(SES_KEY), db = getDB();
