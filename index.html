@@ -123,7 +123,8 @@
     </div>
     <div id="tradeAlert" class="alert hide" style="text-align:center;font-weight:700;"></div>
   </div>
-
+<button type="button" id="closeTradeBtn" onclick="closeActiveTrade()" style="display:none;width:100%;margin-top:8px;padding:12px;border-radius:10px;border:none;background:#f59e0b;color:#090d16;font-weight:800;cursor:pointer">💰 CLOSE TRADE NOW</button>
+ 
   <div id="viewCashier" class="hide">
     <div class="row" style="margin-bottom:8px;">
       <strong>M-Pesa Express Cashier</strong>
@@ -551,7 +552,13 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
     refreshSniperBtn();
   }
 
-    async function execTrade(dir, auto = false) {
+    let activeCloseFn = null;
+let lastTradeClosedAt = 0;
+function closeActiveTrade() {
+  if (typeof activeCloseFn === 'function') activeCloseFn();
+}
+
+async function execTrade(dir, auto = false) {
   if (busy || !spot || !isRealFeed) return;
   const stk = parseFloat($('stakeIn').value);
   const bal = acct === 'DEMO' ? demoBal : realBal;
@@ -563,8 +570,9 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
   const isLong = (dir === 'RISE' || dir === 'CALL' || dir === 'MULTUP');
   const contractType = isLong ? 'MULTUP' : 'MULTDOWN';
   const labelDir = isLong ? 'MULT UP' : 'MULT DOWN';
-  const tradeTP = +(stk * 2).toFixed(2);
-  const tradeSL = +stk.toFixed(2);
+  const tradeTP = +Math.max(0.50, stk * 0.40).toFixed(2);
+  const tradeSL = +Math.max(0.25, stk * 0.20).toFixed(2);
+  const closeBtn = $('closeTradeBtn');
 
   if (acct === 'REAL') {
     if (!derivReady || !apiTok) {
@@ -577,7 +585,7 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
     }
     busy = true;
     if (auto) { snipes++; refreshSniperBtn(); }
-    note('tradeAlert', `🚀 OPENING REAL ${labelDir} ($${stk} | TP +$${tradeTP} / SL -$${tradeSL})...`, '');
+    note('tradeAlert', `🚀 OPENING REAL ${labelDir} 60s ($${stk} | TP +$${tradeTP} / SL -$${tradeSL})...`, '');
 
     try {
       const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
@@ -597,6 +605,16 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
 
       const wsUrl = (otpJson.data && (otpJson.data.url || otpJson.data.ws_url)) || ('wss://://derivws.com' + encodeURIComponent((otpJson.data && otpJson.data.otp) || ''));
       const wsOrder = new WebSocket(wsUrl);
+      let liveContractId = null;
+      let auto60Timer = null;
+
+      activeCloseFn = () => {
+        if (auto60Timer) clearTimeout(auto60Timer);
+        if (liveContractId && wsOrder.readyState === 1) {
+          wsOrder.send(JSON.stringify({ sell: liveContractId, price: 0 }));
+          if (closeBtn) closeBtn.style.display = 'none';
+        }
+      };
 
       wsOrder.onopen = () => wsOrder.send(JSON.stringify({
         buy: '1',
@@ -619,11 +637,16 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
       wsOrder.onmessage = e => {
         const d = JSON.parse(e.data);
         if (d.error) {
-          wsOrder.close(); busy = false;
+          if (auto60Timer) clearTimeout(auto60Timer);
+          if (closeBtn) closeBtn.style.display = 'none';
+          activeCloseFn = null; wsOrder.close(); busy = false;
           return note('tradeAlert', '❌ ' + d.error.message, 'err');
         }
         if (d.msg_type === 'buy') {
-          note('tradeAlert', `⚡ LIVE ${labelDir} (${d.buy.contract_id}) • TP +$${tradeTP} / SL -$${tradeSL}`, '');
+          liveContractId = d.buy.contract_id;
+          if (closeBtn) closeBtn.style.display = 'block';
+          auto60Timer = setTimeout(() => { if (activeCloseFn) activeCloseFn(); }, 60000);
+          note('tradeAlert', `⚡ LIVE ${labelDir} (60s MAX) • TP +$${tradeTP} / SL -$${tradeSL}`, '');
         } else if (d.msg_type === 'proposal_open_contract') {
           const poc = d.proposal_open_contract;
           if (!poc) return;
@@ -631,6 +654,10 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
             const curPnl = +(poc.profit || 0);
             note('tradeAlert', `⚡ ${labelDir} LIVE P/L: ${curPnl >= 0 ? '+' : ''}$${curPnl.toFixed(2)} (TP +$${tradeTP} / SL -$${tradeSL})`, curPnl >= 0 ? 'ok' : '');
           } else {
+            if (auto60Timer) clearTimeout(auto60Timer);
+            if (closeBtn) closeBtn.style.display = 'none';
+            activeCloseFn = null;
+            lastTradeClosedAt = Date.now();
             const net = +poc.profit;
             realBal = +(realBal + net).toFixed(2);
             pnl = +(pnl + net).toFixed(2);
@@ -646,13 +673,19 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
               armed = false; refreshSniperBtn();
               return note('tradeAlert', `🛑 SESSION TARGET REACHED • P/L: $${pnl.toFixed(2)}`, 'ok');
             }
-            note('tradeAlert', net >= 0 ? `✅ REAL MULT WIN (+$${net.toFixed(2)})` : `❌ REAL MULT LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
+            note('tradeAlert', net >= 0 ? `✅ REAL MULT CLOSED (+$${net.toFixed(2)})` : `❌ REAL MULT LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
           }
         }
       };
-      wsOrder.onerror = () => { busy = false; note('tradeAlert', '❌ Order WebSocket error', 'err'); };
+      wsOrder.onerror = () => {
+        if (auto60Timer) clearTimeout(auto60Timer);
+        if (closeBtn) closeBtn.style.display = 'none';
+        activeCloseFn = null; busy = false;
+        note('tradeAlert', '❌ Order WebSocket error', 'err');
+      };
     } catch (err) {
-      busy = false;
+      if (closeBtn) closeBtn.style.display = 'none';
+      activeCloseFn = null; busy = false;
       note('tradeAlert', '❌ ' + err.message, 'err');
     }
     return;
@@ -660,21 +693,17 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
 
   busy = true;
   const entry = spot;
+  const startedAt = Date.now();
+  let latestDemoPnl = 0;
   if (auto) { snipes++; refreshSniperBtn(); }
-  note('tradeAlert', `⚡ DEMO ${labelDir} 100x @ ${entry.toFixed(2)} • TP +$${tradeTP} / SL -$${tradeSL}`, '');
+  if (closeBtn) closeBtn.style.display = 'block';
+  note('tradeAlert', `⚡ DEMO ${labelDir} 100x (60s) @ ${entry.toFixed(2)} • TP +$${tradeTP} / SL -$${tradeSL}`, '');
 
-  const timer = setInterval(() => {
-    const pctMove = isLong ? ((spot - entry) / entry) : ((entry - spot) / entry);
-    const liveProfit = +(stk * 100 * pctMove).toFixed(2);
-
-    if (liveProfit < tradeTP && liveProfit > -tradeSL) {
-      note('tradeAlert', `⚡ DEMO ${labelDir} @ ${entry.toFixed(2)} • Live P/L: ${liveProfit >= 0 ? '+' : ''}$${liveProfit.toFixed(2)}`, liveProfit >= 0 ? 'ok' : '');
-      return;
-    }
-
+  const finishDemo = (net, reason = 'TP/SL') => {
     clearInterval(timer);
-    const won = liveProfit >= tradeTP;
-    const net = won ? tradeTP : -tradeSL;
+    if (closeBtn) closeBtn.style.display = 'none';
+    activeCloseFn = null;
+    lastTradeClosedAt = Date.now();
     demoBal = +(demoBal + net).toFixed(2);
     pnl = +(pnl + net).toFixed(2);
     syncWallet();
@@ -689,19 +718,34 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
       armed = false; refreshSniperBtn();
       return note('tradeAlert', `🛑 DEMO SESSION COMPLETE • P/L: $${pnl.toFixed(2)}`, 'ok');
     }
-    note('tradeAlert', won ? `✅ DEMO TP HIT (+$${net.toFixed(2)})` : `❌ DEMO SL HIT (-$${tradeSL.toFixed(2)})`, won ? 'ok' : 'err');
-  }, 500);
-      
-    
-  
-}
+    if (reason === 'MANUAL') {
+      note('tradeAlert', net >= 0 ? `💰 CLOSED IN PROFIT (+$${net.toFixed(2)})` : `🛑 CLOSED EARLY (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
+    } else if (reason === '60S') {
+      note('tradeAlert', net >= 0 ? `⏱️ 60s WIN (+$${net.toFixed(2)})` : `⏱️ 60s LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
+    } else {
+      note('tradeAlert', net >= 0 ? `✅ DEMO TP HIT (+$${net.toFixed(2)})` : `❌ DEMO SL HIT (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
+    }
+  };
 
+  activeCloseFn = () => finishDemo(latestDemoPnl, 'MANUAL');
 
+  const timer = setInterval(() => {
+    const pctMove = isLong ? ((spot - entry) / entry) : ((entry - spot) / entry);
+    latestDemoPnl = +(stk * 100 * pctMove).toFixed(2);
+    const secsLeft = Math.max(0, Math.ceil((60000 - (Date.now() - startedAt)) / 1000));
 
+    if (latestDemoPnl >= tradeTP) return finishDemo(tradeTP, 'TP/SL');
+    if (latestDemoPnl <= -tradeSL) return finishDemo(-tradeSL, 'TP/SL');
+    if (secsLeft <= 0) return finishDemo(latestDemoPnl, '60S');
+
+    note('tradeAlert', `⚡ ${labelDir} (${secsLeft}s) • Live P/L: ${latestDemoPnl >= 0 ? '+' : ''}$${latestDemoPnl.toFixed(2)} (TP +$${tradeTP})`, latestDemoPnl >= 0 ? 'ok' : '');
+  }, 400);
+ }
 
 // True Wilder's RSI-7
 function getRsi(period = 7) {
-  if (bars.length <= period) return 50;
+  if (bars.length <= period) return 50
+                                           ;
   let gains = 0, losses = 0;
   for (let i = bars.length - period; i < bars.length; i++) {
     const diff = bars[i].c - bars[i - 1].c;
@@ -971,6 +1015,7 @@ setTimeout(refreshLiveBalance, 1500);
 </script>
 </body>
 </html>
+
 
 
 
