@@ -501,8 +501,8 @@
     note('apiAlert', '⏳ Connecting to your Deriv account...', '');
     try {
                const base = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
-      let r = await fetch(base + '/accounts', { headers: { 'Authorization': 'Bearer ' + tok, 'Deriv-App-ID': DERIV_APP_ID } });
-      if (r.status === 404) r = await fetch(base + '/legacy/accounts', { headers: { 'Authorization': 'Bearer ' + tok, 'Deriv-App-ID': DERIV_APP_ID } });
+      let r = await fetch(base + '/accounts', { headers: { 'Authorization': 'Bearer ' + tok,  } });
+      if (r.status === 404) r = await fetch(base + '/legacy/accounts', { headers: { 'Authorization': 'Bearer ' + tok,  } });
       const raw = await r.text();
       let json = {};
       try { json = JSON.parse(raw); } catch (_) { throw new Error('HTTP ' + r.status + ': ' + raw.slice(0, 80)); }
@@ -517,7 +517,8 @@
       realBal = +(realAcc.balance || 0);
       syncWallet();
       refreshStats();
-      note('apiAlert', `✅ Linked (${derivLoginId}) • Live Balance: $${realBal.toFixed(2)}`, 'ok');
+            note('apiAlert', `✅ Linked (${derivLoginId}) • Live Balance: $${realBal.toFixed(2)}`, 'ok'); connectRealDeriv();
+
     } catch (err) {
       derivReady = false;
       note('apiAlert', '❌ Auth failed: ' + err.message, 'err');
@@ -574,7 +575,8 @@
 
     try {
       const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
-      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json', 'Deriv-App-ID': DERIV_APP_ID };
+      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json' };
+ 
       const accRes = await fetch(optBase + '/accounts', { headers: hdrs });
       const accJson = await accRes.json();
       if (!accRes.ok) throw new Error('Deriv account check failed');
@@ -786,7 +788,7 @@ function connectRealDeriv() {
 
       $('sigTxt').textContent = '⏳ REQUESTING DERIV OTP STREAM...';
       const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
-      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json', 'Deriv-App-ID': DERIV_APP_ID };
+      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json',  };
 
       const accRes = await fetch(optBase + '/accounts', { headers: hdrs });
       const accJson = await accRes.json();
@@ -892,7 +894,8 @@ async function refreshLiveBalance() {
   try {
     const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
     const r = await fetch(optBase + '/accounts', {
-      headers: { 'Authorization': 'Bearer ' + apiTok, 'Deriv-App-ID': DERIV_APP_ID }
+            headers: { 'Authorization': 'Bearer ' + apiTok }
+
     });
     if (!r.ok) return;
     const json = await r.json();
