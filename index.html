@@ -872,7 +872,8 @@ function connectRealDeriv() {
       reconnectTimer = setTimeout(connectRealDeriv, 5000);
     }
   })();
-}EventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
+ 
   const ses = localStorage.getItem(SES_KEY), db = getDB();
   if (ses && db[ses]) enterTerminal(db[ses]);
   const oaAcct = localStorage.getItem('wt_oauth_acct'), oaTok = localStorage.getItem('wt_oauth_tok');
