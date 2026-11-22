@@ -811,7 +811,13 @@ function evaluateStrategy(ema20, rsi) {
     $('sigTxt').textContent = `🎯 ${trendLabel}`;
     $('sigTxt').style.color = '#94a3b8';
   }
- }tion connectRealDeriv() {
+ }
+
+let isRealFeed = false;
+let reconnectTimer = null;
+
+function connectRealDeriv() {
+
   if (reconnectTimer) clearTimeout(reconnectTimer);
 
   (async () => {
@@ -837,7 +843,8 @@ function evaluateStrategy(ema20, rsi) {
       const accId = targetAcc.id || targetAcc.account_id;
       const modePath = (targetAcc.account_type === 'real' || String(accId).startsWith('CR')) ? 'real' : 'demo';
 
-      const otpRes = await fetch(`${optBase}/accounts/${encodeURIComponent(accId)}/otp`, { method: 'POST', headers: hdrs });
+            const otpRes = await fetch(optBase + '/accounts/' + encodeURIComponent(accId) + '/otp', { method: 'POST', headers: hdrs });
+
       const otpJson = await otpRes.json();
       if (!otpRes.ok) throw new Error('OTP failed');
 
