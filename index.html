@@ -114,6 +114,7 @@
     <div id="regimeBox" class="alert" style="text-align:center;font-weight:800;margin-top:8px;">⏳ SYNCING LIVE DERIV R_100 FEED...</div>
 
     <button type="button" id="sniperBtn" class="btn-green" style="margin-top:8px;" onclick="toggleSniper()">🎯 START AI SNIPER PRO (0/2)</button>
+<div id="manualSigBox" class="alert" style="text-align:center;font-weight:800;letter-spacing:.4px;margin-top:8px">⏳ ANALYZING EMA-20 + ATR + RSI-7...</div>
 
     <div class="grid2" style="margin-top:8px;">
       <button type="button" class="btn-green" onclick="execTrade('RISE')">📈 RISE (1 MIN)</button>
@@ -722,10 +723,18 @@ function renderChart() {
   const ema20 = calcEMA(closes.slice(-25), 20);
   $('emaTxt').textContent = ema20.toFixed(2);
 
-  ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#f59e0b';
-  ctx.beginPath(); ctx.moveTo(0, yOf(ema20)); ctx.lineTo(w, yOf(ema20)); ctx.stroke(); ctx.restore();
-
   const step = (w - 20) / list.length, bw = Math.max(6, step * 0.55);
+  ctx.save(); ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  list.forEach((_, i) => {
+    const subCloses = closes.slice(0, closes.length - list.length + i + 1);
+    const val = calcEMA(subCloses.slice(-25), 20);
+    const x = 10 + i * step + step / 2;
+    if (i === 0) ctx.moveTo(x, yOf(val));
+    else ctx.lineTo(x, yOf(val));
+  });
+  ctx.stroke(); ctx.restore();
+
   list.forEach((b, i) => {
     const x = 10 + i * step + step / 2, up = b.c >= b.o;
     ctx.strokeStyle = ctx.fillStyle = up ? '#10b981' : '#ef4444';
@@ -741,43 +750,68 @@ function evaluateStrategy(ema20, rsi) {
   const prevEma20 = calcEMA(closes.slice(-26, -1), 20);
   const emaSlope = ema20 - prevEma20;
 
-  // ATR-style average candle range to avoid dead/choppy markets
   const recentRanges = bars.slice(-10).map(b => b.h - b.l);
   const avgRange = recentRanges.reduce((a, b) => a + b, 0) / recentRanges.length;
-  const volOk = avgRange >= 1.2;
+  const volOk = avgRange >= 0.9;
 
   safeToArm = volOk && isRealFeed;
   const rb = $('regimeBox');
   rb.textContent = volOk ? `✅ 1M TREND READY (ATR ${avgRange.toFixed(2)})` : `⚠️ LOW VOLATILITY CHOP (ATR ${avgRange.toFixed(2)})`;
   rb.className = 'alert ' + (volOk ? 'ok' : 'err');
 
-  // Pullback + Rejection in direction of EMA-20 trend
-  const upTrend = spot > ema20 && emaSlope > 0.05;
-  const dnTrend = spot < ema20 && emaSlope < -0.05;
+  const upTrend = spot > ema20 && emaSlope > 0.04;
+  const dnTrend = spot < ema20 && emaSlope < -0.04;
 
-  const bullPullbackEntry = upTrend && rsi <= 38 && spot > prevSpot;
-  const bearPullbackEntry = dnTrend && rsi >= 62 && spot < prevSpot;
+  // Manual Entry Advisor (combines EMA-20 + ATR >= 0.90 + RSI-7 sweet spot + tick direction)
+  const riseReady = volOk && upTrend && rsi >= 42 && rsi <= 74 && spot > prevSpot;
+  const fallReady = volOk && dnTrend && rsi >= 26 && rsi <= 58 && spot < prevSpot;
 
-  if (volOk && bullPullbackEntry) {
+  const mb = $('manualSigBox');
+  const riseBtn = document.querySelector('button[onclick*="RISE"]');
+  const fallBtn = document.querySelector('button[onclick*="FALL"]');
+  if (riseBtn) riseBtn.style.boxShadow = riseReady ? '0 0 16px #10b981' : 'none';
+  if (fallBtn) fallBtn.style.boxShadow = fallReady ? '0 0 16px #ef4444' : 'none';
+
+  if (mb) {
+    if (riseReady) {
+      mb.textContent = `📈 SIGNAL: ENTER RISE (1 MIN) • EMA-20 UP + RSI ${rsi}`;
+      mb.className = 'alert ok';
+    } else if (fallReady) {
+      mb.textContent = `📉 SIGNAL: ENTER FALL (1 MIN) • EMA-20 DOWN + RSI ${rsi}`;
+      mb.className = 'alert err';
+    } else if (!volOk) {
+      mb.textContent = `⏳ WAIT • LOW VOLATILITY (ATR ${avgRange.toFixed(2)} < 0.90)`;
+      mb.className = 'alert';
+    } else if (upTrend && rsi > 74) {
+      mb.textContent = `⏳ WAIT • UPTREND OVERBOUGHT (RSI ${rsi} — WAIT DIP)`;
+      mb.className = 'alert';
+    } else if (dnTrend && rsi < 26) {
+      mb.textContent = `⏳ WAIT • DOWNTREND OVERSOLD (RSI ${rsi} — WAIT BOUNCE)`;
+      mb.className = 'alert';
+    } else {
+      mb.textContent = `⏳ WAIT • SCANNING EMA-20 & RSI (${rsi})`;
+      mb.className = 'alert';
+    }
+  }
+
+  // AI Sniper auto-entry (strict pullback rejection)
+  const bullPullbackEntry = volOk && upTrend && rsi <= 43 && spot > prevSpot;
+  const bearPullbackEntry = volOk && dnTrend && rsi >= 57 && spot < prevSpot;
+
+  if (bullPullbackEntry) {
     $('sigTxt').textContent = `⚡ SNIPER CALL • Pullback Rejection (RSI ${rsi})`;
     $('sigTxt').style.color = '#10b981';
     if (armed && !busy) execTrade('RISE', true);
-  } else if (volOk && bearPullbackEntry) {
+  } else if (bearPullbackEntry) {
     $('sigTxt').textContent = `⚡ SNIPER PUT • Pullback Rejection (RSI ${rsi})`;
     $('sigTxt').style.color = '#ef4444';
     if (armed && !busy) execTrade('FALL', true);
   } else {
-    const trendLabel = upTrend ? 'UPTREND (Waiting RSI < 38)' : (dnTrend ? 'DOWNTREND (Waiting RSI > 62)' : 'RANGING / NO TREND');
+    const trendLabel = upTrend ? 'UPTREND' : (dnTrend ? 'DOWNTREND' : 'RANGING / NO TREND');
     $('sigTxt').textContent = `🎯 ${trendLabel}`;
     $('sigTxt').style.color = '#94a3b8';
   }
-}
-
-let isRealFeed = false;
-
- let reconnectTimer = null;
-
-function connectRealDeriv() {
+ }tion connectRealDeriv() {
   if (reconnectTimer) clearTimeout(reconnectTimer);
 
   (async () => {
@@ -917,4 +951,5 @@ setTimeout(refreshLiveBalance, 1500);
 </script>
 </body>
 </html>
+
 
