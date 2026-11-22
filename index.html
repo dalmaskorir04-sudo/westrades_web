@@ -775,13 +775,11 @@ let isRealFeed = false;
 
 function connectRealDeriv() {
   if (reconnectTimer) clearTimeout(reconnectTimer);
-  const hosts = ['ws' + '.derivws.com', 'blue' + '.derivws.com', 'green' + '.derivws.com'];
-  const host = hosts[Math.floor(Math.random() * hosts.length)];
 
   try {
     if (liveSocket) liveSocket.close();
     $('sigTxt').textContent = '⏳ CONNECTING TO DERIV 1M FEED...';
-    liveSocket = new WebSocket('wss://' + host + '/websockets/v3?app_id=1089');
+        liveSocket = new WebSocket(['wss://ws', 'derivws', 'com/websockets/v3?app_id=1089'].join('.'));
 
 
     liveSocket.onopen = () => {
@@ -791,12 +789,12 @@ function connectRealDeriv() {
         adjust_start_time: 1,
         count: 35,
         end: 'latest',
-        start: 1,
         style: 'candles',
         granularity: 60,
         subscribe: 1
       }));
     };
+
 
     liveSocket.onmessage = e => {
       const d = JSON.parse(e.data);
