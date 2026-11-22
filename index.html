@@ -777,15 +777,15 @@ function connectRealDeriv() {
   if (reconnectTimer) clearTimeout(reconnectTimer);
 
   try {
-    if (liveSocket) liveSocket.close();
-    $('sigTxt').textContent = '⏳ CONNECTING TO DERIV 1M FEED...';
-            liveSocket = new WebSocket(['wss://ws', 'binaryws', 'com/websockets/v3?app_id=1089'].join('.'));
+ 
 
-
-
+     $('sigTxt').textContent = '⏳ CONNECTING (APP ' + DERIV_APP_ID + ')...';
+    const wsEndpoint = ['wss://ws', 'derivws', 'com/websockets/v3?app_id=' + DERIV_APP_ID].join('.');
+    liveSocket = new WebSocket(wsEndpoint);
 
     liveSocket.onopen = () => {
       isRealFeed = true;
+      $('sigTxt').textContent = '📡 SOCKET OPEN • REQUESTING R_100...';
       liveSocket.send(JSON.stringify({
         ticks_history: 'R_100',
         adjust_start_time: 1,
@@ -797,9 +797,12 @@ function connectRealDeriv() {
       }));
     };
 
-
     liveSocket.onmessage = e => {
       const d = JSON.parse(e.data);
+      if (d.error) {
+        $('sigTxt').textContent = '❌ DERIV ERR: ' + d.error.message;
+        return;
+      }
       if (d.candles) {
         bars = d.candles.map(c => ({ o: +c.open, h: +c.high, l: +c.low, c: +c.close, epoch: c.epoch }));
         spot = bars[bars.length - 1].c;
@@ -831,12 +834,17 @@ function connectRealDeriv() {
       }
     };
 
-    liveSocket.onerror = () => { isRealFeed = false; };
-    liveSocket.onclose = () => {
+    liveSocket.onerror = () => {
       isRealFeed = false;
-      $('sigTxt').textContent = '⚠️ FEED DISCONNECTED • RECONNECTING...';
+      $('sigTxt').textContent = '❌ WS BLOCKED/ERROR';
+    };
+    liveSocket.onclose = ev => {
+      isRealFeed = false;
+      $('sigTxt').textContent = '⚠️ CLOSED (' + ev.code + ') • RETRYING...';
       reconnectTimer = setTimeout(connectRealDeriv, 3000);
     };
+
+
   } catch (err) {
     isRealFeed = false;
     reconnectTimer = setTimeout(connectRealDeriv, 3000);
