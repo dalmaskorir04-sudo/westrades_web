@@ -441,7 +441,9 @@
     throw new Error(lastErr);
   }
 
-  const DERIV_APP_ID = '34ZlmKHavu7W7E2iembrP';
+  const DERIV_APP_ID = '3526gzbayeBavd3tLAfjU';
+const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).includes('derivws') ? _origFetch(u, { ...o, headers: { 'Deriv-App-ID': DERIV_APP_ID, ...(o.headers || {}) } }) : _origFetch(u, o);
+
 
     async function startDerivOAuth() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
