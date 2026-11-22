@@ -776,82 +776,103 @@ let isRealFeed = false;
 function connectRealDeriv() {
   if (reconnectTimer) clearTimeout(reconnectTimer);
 
-  try {
- 
-
-     $('sigTxt').textContent = '⏳ CONNECTING (APP ' + DERIV_APP_ID + ')...';
-    const wsEndpoint = ['wss://ws', 'derivws', 'com/websockets/v3?app_id=' + DERIV_APP_ID].join('.');
-    liveSocket = new WebSocket(wsEndpoint);
-
-    liveSocket.onopen = () => {
-      isRealFeed = true;
-      $('sigTxt').textContent = '📡 SOCKET OPEN • REQUESTING R_100...';
-      liveSocket.send(JSON.stringify({
-        ticks_history: 'R_100',
-        adjust_start_time: 1,
-        count: 35,
-        end: 'latest',
-        style: 'candles',
-        granularity: 60,
-        subscribe: 1
-      }));
-    };
-
-    liveSocket.onmessage = e => {
-      const d = JSON.parse(e.data);
-      if (d.error) {
-        $('sigTxt').textContent = '❌ DERIV ERR: ' + d.error.message;
+  (async () => {
+    try {
+      if (liveSocket) liveSocket.close();
+      if (!apiTok) {
+        $('sigTxt').textContent = '🔑 LINK DERIV API TOKEN IN API TAB FOR LIVE FEED';
         return;
       }
-      if (d.candles) {
-        bars = d.candles.map(c => ({ o: +c.open, h: +c.high, l: +c.low, c: +c.close, epoch: c.epoch }));
-        spot = bars[bars.length - 1].c;
-        prevSpot = spot;
-        $('spotTxt').textContent = spot.toFixed(2);
-        const ema20 = renderChart();
-        const rsi = getRsi(7);
-        $('rsiTxt').textContent = rsi.toFixed(1);
-        evaluateStrategy(ema20, rsi);
-      } else if (d.ohlc) {
-        const c = d.ohlc;
-        prevSpot = spot || +c.close;
-        spot = +c.close;
-        const bar = { o: +c.open, h: +c.high, l: +c.low, c: +c.close, epoch: c.open_time };
 
-        if (bars.length && bars[bars.length - 1].epoch === bar.epoch) {
-          bars[bars.length - 1] = bar;
-        } else {
-          bars.push(bar);
-          if (bars.length > 50) bars.shift();
+      $('sigTxt').textContent = '⏳ REQUESTING DERIV OTP STREAM...';
+      const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
+      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json', 'Deriv-App-ID': DERIV_APP_ID };
+
+      const accRes = await fetch(optBase + '/accounts', { headers: hdrs });
+      const accJson = await accRes.json();
+      if (!accRes.ok) throw new Error((accJson.errors && accJson.errors.length && accJson.errors.at(0).message) || 'Token invalid');
+
+      const list = Array.isArray(accJson.data) ? accJson.data : (accJson.data && accJson.data.accounts ? accJson.data.accounts : []);
+      const targetAcc = list.at(0);
+      if (!targetAcc) throw new Error('No Deriv account found');
+
+      const accId = targetAcc.id || targetAcc.account_id;
+      const modePath = (targetAcc.account_type === 'real' || String(accId).startsWith('CR')) ? 'real' : 'demo';
+
+      const otpRes = await fetch(`${optBase}/accounts/${encodeURIComponent(accId)}/otp`, { method: 'POST', headers: hdrs });
+      const otpJson = await otpRes.json();
+      if (!otpRes.ok) throw new Error('OTP failed');
+
+      const wsUrl = (otpJson.data && (otpJson.data.url || otpJson.data.ws_url)) || `wss://://derivws.com{modePath}?otp=${encodeURIComponent((otpJson.data && otpJson.data.otp) || '')}`;
+      liveSocket = new WebSocket(wsUrl);
+
+      liveSocket.onopen = () => {
+        isRealFeed = true;
+        $('sigTxt').textContent = '📡 STREAM LIVE • LOADING R_100...';
+        liveSocket.send(JSON.stringify({
+          ticks_history: 'R_100',
+          adjust_start_time: 1,
+          count: 35,
+          end: 'latest',
+          style: 'candles',
+          granularity: 60,
+          subscribe: 1
+        }));
+      };
+
+      liveSocket.onmessage = e => {
+        const d = JSON.parse(e.data);
+        if (d.error) {
+          $('sigTxt').textContent = '❌ DERIV ERR: ' + d.error.message;
+          return;
         }
+        if (d.candles) {
+          bars = d.candles.map(c => ({ o: +c.open, h: +c.high, l: +c.low, c: +c.close, epoch: c.epoch }));
+          spot = bars[bars.length - 1].c;
+          prevSpot = spot;
+          $('spotTxt').textContent = spot.toFixed(2);
+          const ema20 = renderChart();
+          const rsi = getRsi(7);
+          $('rsiTxt').textContent = rsi.toFixed(1);
+          evaluateStrategy(ema20, rsi);
+        } else if (d.ohlc) {
+          const c = d.ohlc;
+          prevSpot = spot || +c.close;
+          spot = +c.close;
+          const bar = { o: +c.open, h: +c.high, l: +c.low, c: +c.close, epoch: c.open_time };
 
-        $('spotTxt').textContent = spot.toFixed(2);
-        $('spotTxt').style.color = spot >= prevSpot ? '#10b981' : '#ef4444';
-        const ema20 = renderChart();
-        const rsi = getRsi(7);
-        $('rsiTxt').textContent = rsi.toFixed(1);
-        evaluateStrategy(ema20, rsi);
-      }
-    };
+          if (bars.length && bars[bars.length - 1].epoch === bar.epoch) {
+            bars[bars.length - 1] = bar;
+          } else {
+            bars.push(bar);
+            if (bars.length > 50) bars.shift();
+          }
 
-    liveSocket.onerror = () => {
+          $('spotTxt').textContent = spot.toFixed(2);
+          $('spotTxt').style.color = spot >= prevSpot ? '#10b981' : '#ef4444';
+          const ema20 = renderChart();
+          const rsi = getRsi(7);
+          $('rsiTxt').textContent = rsi.toFixed(1);
+          evaluateStrategy(ema20, rsi);
+        }
+      };
+
+      liveSocket.onerror = () => {
+        isRealFeed = false;
+        $('sigTxt').textContent = '❌ STREAM SOCKET ERROR';
+      };
+      liveSocket.onclose = ev => {
+        isRealFeed = false;
+        $('sigTxt').textContent = '⚠️ CLOSED (' + ev.code + ') • RETRYING...';
+        reconnectTimer = setTimeout(connectRealDeriv, 4000);
+      };
+    } catch (err) {
       isRealFeed = false;
-      $('sigTxt').textContent = '❌ WS BLOCKED/ERROR';
-    };
-    liveSocket.onclose = ev => {
-      isRealFeed = false;
-      $('sigTxt').textContent = '⚠️ CLOSED (' + ev.code + ') • RETRYING...';
-      reconnectTimer = setTimeout(connectRealDeriv, 3000);
-    };
-
-
-  } catch (err) {
-    isRealFeed = false;
-    reconnectTimer = setTimeout(connectRealDeriv, 3000);
-  }
-}
-
-window.addEventListener('DOMContentLoaded', () => {
+      $('sigTxt').textContent = '❌ ' + err.message;
+      reconnectTimer = setTimeout(connectRealDeriv, 5000);
+    }
+  })();
+}EventListener('DOMContentLoaded', () => {
   const ses = localStorage.getItem(SES_KEY), db = getDB();
   if (ses && db[ses]) enterTerminal(db[ses]);
   const oaAcct = localStorage.getItem('wt_oauth_acct'), oaTok = localStorage.getItem('wt_oauth_tok');
@@ -888,3 +909,4 @@ setTimeout(refreshLiveBalance, 1500);
 </script>
 </body>
 </html>
+
