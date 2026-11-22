@@ -92,7 +92,7 @@
 
     <div class="pill" style="margin-top:8px;text-align:left;">
       <div class="row" style="font-size:10px;">
-        <span style="color:#94a3b8;">5-TICK CANDLES • EMA-10: <strong id="emaTxt" style="color:#fff;">--.--</strong></span>
+        <span style="color:#94a3b8;">1-MIN CANDLES • EMA-20:: <strong id="emaTxt" style="color:#fff;">--.--</strong></span>
         <span id="sigTxt" style="color:#3b82f6;font-weight:800;">CONNECTING DERIV...</span>
       </div>
       <canvas id="candleCanvas" width="540" height="185"></canvas>
@@ -116,8 +116,8 @@
     <button type="button" id="sniperBtn" class="btn-green" style="margin-top:8px;" onclick="toggleSniper()">🎯 START AI SNIPER PRO (0/2)</button>
 
     <div class="grid2" style="margin-top:8px;">
-      <button type="button" class="btn-green" onclick="execTrade('RISE')">📈 RISE (5 TICKS)</button>
-      <button type="button" class="btn-red" onclick="execTrade('FALL')">📉 FALL (5 TICKS)</button>
+      <button type="button" class="btn-green" onclick="execTrade('RISE')">📈 RISE (1 MIN)</button>
+      <button type="button" class="btn-red" onclick="execTrade('FALL')">📉 FALL (1 MIN)</button>
     </div>
     <div id="tradeAlert" class="alert hide" style="text-align:center;font-weight:700;"></div>
   </div>
@@ -779,7 +779,8 @@ function connectRealDeriv() {
   try {
     if (liveSocket) liveSocket.close();
     $('sigTxt').textContent = '⏳ CONNECTING TO DERIV 1M FEED...';
-        liveSocket = new WebSocket(['wss://ws', 'derivws', 'com/websockets/v3?app_id=1089'].join('.'));
+            liveSocket = new WebSocket(['wss://frontend', 'derivws', 'com/websockets/v3?app_id=1089'].join('.'));
+
 
 
     liveSocket.onopen = () => {
