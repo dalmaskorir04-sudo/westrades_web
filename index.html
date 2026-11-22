@@ -546,304 +546,337 @@
     refreshSniperBtn();
   }
 
-  async function execTrade(dir, auto = false) {
-    if (busy || !spot) return;
-    const stk = parseFloat($('stakeIn').value);
-    const bal = acct === 'DEMO' ? demoBal : realBal;
-    if (isNaN(stk) || stk <= 0 || stk > bal) {
+   async function execTrade(dir, auto = false) {
+  if (busy || !spot || !isRealFeed) return;
+  const stk = parseFloat($('stakeIn').value);
+  const bal = acct === 'DEMO' ? demoBal : realBal;
+  if (isNaN(stk) || stk <= 0 || stk > bal) {
+    armed = false; refreshSniperBtn();
+    return note('tradeAlert', 'Invalid stake or insufficient balance.', 'err');
+  }
+
+  // Normalize direction for Deriv API ('CALL' or 'PUT')
+  const contractType = (dir === 'RISE' || dir === 'CALL') ? 'CALL' : 'PUT';
+  const labelDir = contractType === 'CALL' ? 'RISE' : 'FALL';
+
+  if (acct === 'REAL') {
+    if (!derivReady || !apiTok) {
       armed = false; refreshSniperBtn();
-      return note('tradeAlert', 'Invalid stake or insufficient balance.', 'err');
+      return note('tradeAlert', '⚠️ Connect your Deriv OAuth login or API token first.', 'err');
     }
+    if (stk < 0.35) {
+      armed = false; refreshSniperBtn();
+      return note('tradeAlert', '⚠️ Deriv minimum real stake is $0.35.', 'err');
+    }
+    busy = true;
+    if (auto) { snipes++; refreshSniperBtn(); }
+    note('tradeAlert', `🚀 SENDING REAL ${labelDir} ($${stk}) TO DERIV...`, '');
 
-        if (acct === 'REAL') {
-      if (!derivReady || !apiTok) {
-        armed = false; refreshSniperBtn();
-        return note('tradeAlert', '⚠️ Connect your Deriv OAuth login in the API tab first.', 'err');
-      }
-      if (stk < 0.35) {
-        armed = false; refreshSniperBtn();
-        return note('tradeAlert', '⚠️ Deriv minimum real stake is $0.35 USD.', 'err');
-      }
-      busy = true;
-      if (auto) { snipes++; refreshSniperBtn(); }
-      note('tradeAlert', `🚀 SENDING REAL ORDER: ${dir} ($${stk}) TO DERIV...`, '');
-
+    try {
       const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
-      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json' };
+      const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json', 'Deriv-App-ID': DERIV_APP_ID };
       const accRes = await fetch(optBase + '/accounts', { headers: hdrs });
       const accJson = await accRes.json();
-      if (!accRes.ok) { busy = false; return note('tradeAlert', '❌ Deriv Account Error: ' + (accJson.message || accRes.status), 'err'); }
+      if (!accRes.ok) throw new Error('Deriv account check failed');
 
-      const list = Array.isArray(accJson.data) ? accJson.data : (accJson.data && accJson.data.accounts ? accJson.data.accounts : []);
-      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR')) || list[0];
-      if (!realAcc) { busy = false; return note('tradeAlert', '❌ No Real Options account found on Deriv.', 'err'); }
+      const list = Array.isArray(accJson.data) ? accJson.data : (accJson.data?.accounts || []);
+      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR') || String(a.id || a.account_id || '').startsWith('ROT'));
+      if (!realAcc) throw new Error('No Real Options account found');
 
       const accId = realAcc.id || realAcc.account_id;
       const otpRes = await fetch(`${optBase}/accounts/${encodeURIComponent(accId)}/otp`, { method: 'POST', headers: hdrs });
       const otpJson = await otpRes.json();
-      if (!otpRes.ok) { busy = false; return note('tradeAlert', '❌ Deriv OTP Error: ' + (otpJson.message || otpRes.status), 'err'); }
+      if (!otpRes.ok) throw new Error('Deriv OTP auth failed');
 
-      const wsUrl = (otpJson.data && (otpJson.data.url || otpJson.data.ws_url)) || otpJson.url ||
-        (['wss://api', 'derivws', 'com/trading/v1/options/ws/real?otp='].join('.') + encodeURIComponent((otpJson.data && otpJson.data.otp) || otpJson.otp || ''));
+      const wsUrl = otpJson.data?.url || otpJson.data?.ws_url || `wss://://derivws.com{encodeURIComponent(otpJson.data?.otp || '')}`;
       const wsOrder = new WebSocket(wsUrl);
+
       wsOrder.onopen = () => wsOrder.send(JSON.stringify({
-        buy: '1', subscribe: 1, price: stk,
-        parameters: { amount: stk, basis: 'stake', contract_type: dir === 'RISE' ? 'CALL' : 'PUT', currency: 'USD', duration: 5, duration_unit: 't', symbol: 'R_100' }
+        buy: '1',
+        subscribe: 1,
+        price: stk,
+        parameters: {
+          amount: stk,
+          basis: 'stake',
+          contract_type: contractType,
+          currency: 'USD',
+          duration: 1,
+          duration_unit: 'm',
+          symbol: 'R_100'
+        }
       }));
+
       wsOrder.onmessage = e => {
         const d = JSON.parse(e.data);
-        if (d.error) { wsOrder.close(); busy = false; return note('tradeAlert', '❌ Deriv Error: ' + d.error.message, 'err'); }
+        if (d.error) {
+          wsOrder.close(); busy = false;
+          return note('tradeAlert', '❌ ' + d.error.message, 'err');
+        }
         if (d.msg_type === 'buy') {
-          note('tradeAlert', `⚡ REAL CONTRACT LIVE (ID: ${d.buy.contract_id}) • Waiting 5 ticks...`, '');
-        } else if (d.msg_type === 'proposal_open_contract' && d.proposal_open_contract && d.proposal_open_contract.is_sold) {
+          note('tradeAlert', `⚡ LIVE CONTRACT (${d.buy.contract_id}) • 1-Min ${labelDir} active...`, '');
+        } else if (d.msg_type === 'proposal_open_contract' && d.proposal_open_contract?.is_sold) {
           const net = +d.proposal_open_contract.profit;
           realBal = +(realBal + net).toFixed(2);
           pnl = +(pnl + net).toFixed(2);
           syncWallet();
-          addLog(`REAL R_100 ${dir}`, net);
+          addLog(`REAL R_100 ${labelDir}`, net);
           refreshStats();
           wsOrder.close(); busy = false;
-          const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipes').value) || 2;
+
+          const tp = parseFloat($('tpIn').value) || 9999;
+          const sl = parseFloat($('slIn').value) || 9999;
+          const max = parseInt($('maxSnipeIn').value, 10) || 10;
           if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
             armed = false; refreshSniperBtn();
-            return note('tradeAlert', `🔴 REAL SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
+            return note('tradeAlert', `🛑 SESSION TARGET REACHED • P/L: $${pnl.toFixed(2)}`, 'ok');
           }
           note('tradeAlert', net >= 0 ? `✅ REAL WIN (+$${net.toFixed(2)})` : `❌ REAL LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
         }
       };
-      wsOrder.onerror = () => { busy = false; note('tradeAlert', '❌ Connection interrupted during live order.', 'err'); };
-      return;
-         }
-            busy = true; const entry = spot; let count = 0;
-   if (auto) { snipes++; refreshSniperBtn(); }
-
- 
- const timer = setInterval(() => {
-      if (spot !== prevSpot) count++;
-      if (count >= 5) {
-        clearInterval(timer);
-        const won = (dir === 'RISE' && spot > entry) || (dir === 'FALL' && spot < entry);
-        const net = won ? +(stk * 0.95).toFixed(2) : -stk;
-        demoBal = +(demoBal + net).toFixed(2);
-        pnl = +(pnl + net).toFixed(2);
-        syncWallet();
-               addLog(`DEMO R_100 ${dir}`, net);
-       refreshStats(); busy = false;
-
-
-        const tp = parseFloat($('tpIn').value) || 9999, sl = parseFloat($('slIn').value) || 9999, max = parseInt($('maxSnipeIn').value, 10);
-        if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
-          armed = false; refreshSniperBtn();
-          return note('tradeAlert', `🛑 SNIPER COMPLETE • ${snipes}/${max} TRADES • NET ${pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
-        }
-        
-                   
-     note('tradeAlert', won ? `✅ DEMO WIN (+$${net.toFixed(2)})` : `❌ 5-TICK LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
- }
-
-    }, 450);
-  }
-   function getRsi() {
-    if (bars.length < 8) return 50;
-    let g = 0, l = 0;
-    for (let i = bars.length - 7; i < bars.length; i++) {
-      const d = bars[i].c - bars[i - 1].c;
-      if (d >= 0) g += d; else l -= d;
-    }
-    return l === 0 ? 92 : +(100 - (100 / (1 + g / l))).toFixed(1);
-  }
-
-  function renderChart() {
-    const cv = $('candleCanvas'); if (!cv || (!bars.length && !ticks.length)) return;
-    const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
-    ctx.clearRect(0, 0, w, h);
-
-    const list = [...bars.slice(-20)];
-    if (ticks.length) {
-      list.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
-
-    }
-    if (!list.length) return spot;
-
-    const hi = Math.max(...list.map(b => b.h)) + 0.25, lo = Math.min(...list.map(b => b.l)) - 0.25;
-    const yOf = p => h - 14 - ((p - lo) / (hi - lo || 1)) * (h - 28);
-
-    ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
-    for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-
-
-    const ema = +(list.slice(-10).reduce((s, b) => s + b.c, 0) / Math.min(10, list.length)).toFixed(2);
-    $('emaTxt').textContent = ema.toFixed(2);
-    ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#64748b';
-    ctx.beginPath(); ctx.moveTo(0, yOf(ema)); ctx.lineTo(w, yOf(ema)); ctx.stroke(); ctx.restore();
-
-    const step = (w - 20) / list.length, bw = Math.max(6, step * 0.55);
-    list.forEach((b, i) => {
-      const x = 10 + i * step + step / 2, up = b.c >= b.o;
-      ctx.strokeStyle = ctx.fillStyle = up ? '#10b981' : '#ef4444'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(x, yOf(b.h)); ctx.lineTo(x, yOf(b.l)); ctx.stroke();
-      ctx.fillRect(x - bw / 2, yOf(Math.max(b.o, b.c)), bw, Math.max(2, Math.abs(yOf(b.o) - yOf(b.c))));
-    });
-    return ema;
-  }
-
-  function onTick(q) {
-    prevSpot = spot || q;
-    const step = +(q - prevSpot).toFixed(4);
-    spot = q; ticks.push(spot);
-    if (ticks.length >= 5) {
-      bars.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
-      if (bars.length > 40) bars.shift();
-      ticks = [spot];
-    }
-    $('spotTxt').textContent = spot.toFixed(2);
-    $('spotTxt').style.color = step >= 0 ? '#10b981' : '#ef4444';
-
-    const ema = !$('mainScreen').classList.contains('hide') ? renderChart() : spot;
-    const rsi = getRsi();
-    $('rsiTxt').textContent = rsi.toFixed(1);
-
-        if (bars.length >= 8) {
-      const cls = bars.slice(-15).map(b => b.c);
-      const mean = cls.reduce((a, b) => a + b, 0) / cls.length;
-      const sd = Math.sqrt(cls.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / cls.length) || 0.25;
-      const upBand = mean + 1.8 * sd, loBand = mean - 1.8 * sd;
-      const trendOk = sd >= 0.14;
-      safeToArm = trendOk && (rsi >= 24 && rsi <= 76);
-      const rb = $('regimeBox');
-      rb.textContent = trendOk ? `✅ OPTIMAL VOLATILITY (SD ${sd.toFixed(2)} • RSI ${rsi.toFixed(1)})` : `⚠️ LOW VOLATILITY CHOP (SD ${sd.toFixed(2)} — WAIT)`;
-      rb.className = 'alert ' + (trendOk ? 'ok' : 'err');
-
-            const emaFast = cls.slice(-6).reduce((a, b) => a + b, 0) / Math.min(6, cls.length);
-      const emaSlow = mean;
-      const upTrend = emaFast > emaSlow + (sd * 0.15);
-      const dnTrend = emaFast < emaSlow - (sd * 0.15);
-
-      const riseScore = upTrend ? ((rsi >= 42 && rsi <= 58 ? 40 : 0) + (prevSpot <= emaFast && spot > emaFast ? 35 : 0) + (spot > prevSpot ? 20 : 0)) : 0;
-      const fallScore = dnTrend ? ((rsi >= 42 && rsi <= 58 ? 40 : 0) + (prevSpot >= emaFast && spot < emaFast ? 35 : 0) + (spot < prevSpot ? 20 : 0)) : 0;
-
-      if (trendOk && riseScore >= 75) {
-        $('sigTxt').textContent = `⚡ TREND RISE (${riseScore}% CONF)`; $('sigTxt').style.color = '#10b981';
-        if (armed && !busy) execTrade('RISE', true);
-      } else if (trendOk && fallScore >= 75) {
-        $('sigTxt').textContent = `⚡ TREND FALL (${fallScore}% CONF)`; $('sigTxt').style.color = '#ef4444';
-        if (armed && !busy) execTrade('FALL', true);
-      } else {
-        const best = Math.max(riseScore, fallScore);
-        const dirHint = upTrend ? 'UPTREND' : (dnTrend ? 'DOWNTREND' : 'CHOP');
-        $('sigTxt').textContent = best >= 55 ? `🎯 ${dirHint} PULLBACK ${best}%` : `🎯 ${dirHint} • RSI ${rsi.toFixed(1)}`;
-        $('sigTxt').style.color = best >= 55 ? '#f59e0b' : '#94a3b8';
-      }
-    }
-    lastStep = step;
-
-  }
-  let marketTimer = null;
-
-  function runMarketStream() {
-    if (marketTimer) return;
-    $('sigTxt').textContent = 'LIVE R_100 STREAM';
-    $('sigTxt').style.color = '#3b82f6';
-    marketTimer = setInterval(() => {
-      const drift = (Math.random() - 0.5) * 1.25;
-      const next = +((spot || 4134.11) + drift).toFixed(2);
-      onTick(next);
-    }, 900);
-  }
-
-  function connectRealDeriv() {
-    let p = 4134.11;
-    bars = [];
-    for (let i = 0; i < 18; i++) {
-      const o = p;
-      const c = +(o + (Math.random() - 0.49) * 1.45).toFixed(2);
-      const h = +(Math.max(o, c) + Math.random() * 0.55).toFixed(2);
-      const l = +(Math.min(o, c) - Math.random() * 0.55).toFixed(2);
-      bars.push({ o, h, l, c });
-      p = c;
-    }
-    spot = p;
-    ticks = [spot];
-    $('spotTxt').textContent = spot.toFixed(2);
-    renderChart();
-
-    const backup = setTimeout(runMarketStream, 2000);
-
-    const hosts = ['ws' + '.derivws.com', 'blue' + '.derivws.com', 'green' + '.derivws.com'];
-    const host = hosts[Math.floor(Math.random() * hosts.length)];
-    try {
-      if (liveSocket) liveSocket.close();
-      liveSocket = new WebSocket('wss://' + host + '/websockets/v3?app_id=1089');
-
-      liveSocket.onopen = () => {
-        clearTimeout(backup);
-        if (marketTimer) { clearInterval(marketTimer); marketTimer = null; }
-        $('sigTxt').textContent = 'DERIV LIVE (' + host.split('.')[0].toUpperCase() + ')';
-        $('sigTxt').style.color = '#10b981';
-        liveSocket.send(JSON.stringify({ ticks_history: 'R_100', count: 60, end: 'latest', style: 'ticks', subscribe: 1 }));
-      };
-
-      liveSocket.onmessage = e => {
-        const d = JSON.parse(e.data);
-        if (d.history && d.history.prices) {
-          bars = []; ticks = [];
-          d.history.prices.forEach(pr => {
-            ticks.push(+pr);
-            if (ticks.length >= 5) {
-              bars.push({ o: ticks[0], h: Math.max(...ticks), l: Math.min(...ticks), c: ticks[ticks.length - 1] });
-              ticks = [+pr];
-            }
-          });
-          spot = +d.history.prices[d.history.prices.length - 1];
-          $('spotTxt').textContent = spot.toFixed(2);
-          renderChart();
-        } else if (d.tick) {
-          onTick(+d.tick.quote);
-        }
-      };
-
-      liveSocket.onerror = () => runMarketStream();
-      liveSocket.onclose = () => runMarketStream();
+      wsOrder.onerror = () => { busy = false; note('tradeAlert', '❌ Order WebSocket error', 'err'); };
     } catch (err) {
-      runMarketStream();
+      busy = false;
+      note('tradeAlert', '❌ ' + err.message, 'err');
     }
+    return;
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const ses = localStorage.getItem(SES_KEY), db = getDB();
-    if (ses && db[ses]) enterTerminal(db[ses]);
-       const oaAcct = localStorage.getItem('wt_oauth_acct'), oaTok = localStorage.getItem('wt_oauth_tok');
-    if (oaAcct && oaTok) {
-      apiTok = oaTok; derivReady = true; derivLoginId = oaAcct;
-      if ($('apiTokIn')) $('apiTokIn').value = oaTok;
-      syncWallet(); refreshStats();
-      note('apiAlert', `✅ OAuth Linked (${derivLoginId}) • Ready for Live Deriv`, 'ok');
-    }
+  // DEMO MODE: Exact 60-second real market simulation synced to real Deriv ticks
+  busy = true;
+  const entry = spot;
+  const endTime = Date.now() + 60000;
+  if (auto) { snipes++; refreshSniperBtn(); }
+  note('tradeAlert', `⏳ DEMO 1-MIN ${labelDir} @ ${entry.toFixed(2)}...`, '');
 
+  const timer = setInterval(() => {
+    const rem = Math.ceil((endTime - Date.now()) / 1000);
+    if (rem > 0) {
+      note('tradeAlert', `⏳ DEMO ${labelDir} @ ${entry.toFixed(2)} • ${rem}s left (Now: ${spot.toFixed(2)})`, '');
+      return;
+    }
+    clearInterval(timer);
+    const won = (contractType === 'CALL' && spot > entry) || (contractType === 'PUT' && spot < entry);
+    const net = won ? +(stk * 0.95).toFixed(2) : -stk;
+    demoBal = +(demoBal + net).toFixed(2);
+    pnl = +(pnl + net).toFixed(2);
+    syncWallet();
+    addLog(`DEMO R_100 ${labelDir}`, net);
+    refreshStats();
+    busy = false;
+
+    const tp = parseFloat($('tpIn').value) || 9999;
+    const sl = parseFloat($('slIn').value) || 9999;
+    const max = parseInt($('maxSnipeIn').value, 10) || 10;
+    if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
+      armed = false; refreshSniperBtn();
+      return note('tradeAlert', `🛑 DEMO SESSION COMPLETE • P/L: $${pnl.toFixed(2)}`, 'ok');
+    }
+    note('tradeAlert', won ? `✅ DEMO WIN (+$${net.toFixed(2)})` : `❌ DEMO LOSS (-$${stk.toFixed(2)})`, won ? 'ok' : 'err');
+  }, 1000);
+}
+
+// True Wilder's RSI-7
+function getRsi(period = 7) {
+  if (bars.length <= period) return 50;
+  let gains = 0, losses = 0;
+  for (let i = bars.length - period; i < bars.length; i++) {
+    const diff = bars[i].c - bars[i - 1].c;
+    if (diff >= 0) gains += diff;
+    else losses -= diff;
+  }
+  if (losses === 0) return 100;
+  const rs = (gains / period) / (losses / period);
+  return +(100 - (100 / (1 + rs))).toFixed(1);
+}
+
+// True Exponential Moving Average (EMA)
+function calcEMA(values, period) {
+  if (!values.length) return 0;
+  const k = 2 / (period + 1);
+  let ema = values[0];
+  for (let i = 1; i < values.length; i++) {
+    ema = values[i] * k + ema * (1 - k);
+  }
+  return ema;
+}
+
+function renderChart() {
+  const cv = $('candleCanvas');
+  if (!cv || !bars.length) return;
+  const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const list = bars.slice(-24);
+  const hi = Math.max(...list.map(b => b.h)) + 0.5;
+  const lo = Math.min(...list.map(b => b.l)) - 0.5;
+  const yOf = p => h - 14 - ((p - lo) / (hi - lo || 1)) * (h - 28);
+
+  ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
+  for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  const closes = bars.map(b => b.c);
+  const ema20 = calcEMA(closes.slice(-25), 20);
+  $('emaTxt').textContent = ema20.toFixed(2);
+
+  ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#f59e0b';
+  ctx.beginPath(); ctx.moveTo(0, yOf(ema20)); ctx.lineTo(w, yOf(ema20)); ctx.stroke(); ctx.restore();
+
+  const step = (w - 20) / list.length, bw = Math.max(6, step * 0.55);
+  list.forEach((b, i) => {
+    const x = 10 + i * step + step / 2, up = b.c >= b.o;
+    ctx.strokeStyle = ctx.fillStyle = up ? '#10b981' : '#ef4444';
+    ctx.beginPath(); ctx.moveTo(x, yOf(b.h)); ctx.lineTo(x, yOf(b.l)); ctx.stroke();
+    ctx.fillRect(x - bw / 2, yOf(Math.max(b.o, b.c)), bw, Math.max(2, Math.abs(yOf(b.o) - yOf(b.c))));
   });
-   async function refreshLiveBalance() {
-    if (!derivReady || !apiTok) return;
-    try {
-      const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
-      const r = await fetch(optBase + '/accounts', {
-        headers: { 'Authorization': 'Bearer ' + apiTok, 'Deriv-App-ID': DERIV_APP_ID }
-      });
-      if (!r.ok) return;
-      const json = await r.json();
-      const list = Array.isArray(json.data) ? json.data : (json.data && json.data.accounts ? json.data.accounts : []);
-      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR') || String(a.id || a.account_id || '').startsWith('ROT')) || list;
-      if (realAcc) {
-        derivLoginId = realAcc.id || realAcc.account_id || derivLoginId;
-        realBal = +(realAcc.balance || 0);
-        syncWallet();
-        refreshStats();
-        note('apiAlert', `✅ Linked (${derivLoginId}) • Live Balance: $${realBal.toFixed(2)}`, 'ok');
-      }
-    } catch (_) {}
-  }
-  setInterval(refreshLiveBalance, 15000);
-  setTimeout(refreshLiveBalance, 1500);
+  return ema20;
+}
 
+function evaluateStrategy(ema20, rsi) {
+  if (bars.length < 20) return;
+  const closes = bars.map(b => b.c);
+  const prevEma20 = calcEMA(closes.slice(-26, -1), 20);
+  const emaSlope = ema20 - prevEma20;
+
+  // ATR-style average candle range to avoid dead/choppy markets
+  const recentRanges = bars.slice(-10).map(b => b.h - b.l);
+  const avgRange = recentRanges.reduce((a, b) => a + b, 0) / recentRanges.length;
+  const volOk = avgRange >= 1.2;
+
+  safeToArm = volOk && isRealFeed;
+  const rb = $('regimeBox');
+  rb.textContent = volOk ? `✅ 1M TREND READY (ATR ${avgRange.toFixed(2)})` : `⚠️ LOW VOLATILITY CHOP (ATR ${avgRange.toFixed(2)})`;
+  rb.className = 'alert ' + (volOk ? 'ok' : 'err');
+
+  // Pullback + Rejection in direction of EMA-20 trend
+  const upTrend = spot > ema20 && emaSlope > 0.05;
+  const dnTrend = spot < ema20 && emaSlope < -0.05;
+
+  const bullPullbackEntry = upTrend && rsi <= 38 && spot > prevSpot;
+  const bearPullbackEntry = dnTrend && rsi >= 62 && spot < prevSpot;
+
+  if (volOk && bullPullbackEntry) {
+    $('sigTxt').textContent = `⚡ SNIPER CALL • Pullback Rejection (RSI ${rsi})`;
+    $('sigTxt').style.color = '#10b981';
+    if (armed && !busy) execTrade('RISE', true);
+  } else if (volOk && bearPullbackEntry) {
+    $('sigTxt').textContent = `⚡ SNIPER PUT • Pullback Rejection (RSI ${rsi})`;
+    $('sigTxt').style.color = '#ef4444';
+    if (armed && !busy) execTrade('FALL', true);
+  } else {
+    const trendLabel = upTrend ? 'UPTREND (Waiting RSI < 38)' : (dnTrend ? 'DOWNTREND (Waiting RSI > 62)' : 'RANGING / NO TREND');
+    $('sigTxt').textContent = `🎯 ${trendLabel}`;
+    $('sigTxt').style.color = '#94a3b8';
+  }
+}
+
+let isRealFeed = false;
+let liveSocket = null;
+ let reconnectTimer = null;
+
+function connectRealDeriv() {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  const hosts = ['ws' + '.derivws.com', 'blue' + '.derivws.com', 'green' + '.derivws.com'];
+  const host = hosts[Math.floor(Math.random() * hosts.length)];
+
+  try {
+    if (liveSocket) liveSocket.close();
+    $('sigTxt').textContent = '⏳ CONNECTING TO DERIV 1M FEED...';
+    liveSocket = new WebSocket('wss://' + host + '/websockets/v3?app_id=1089');
+
+
+    liveSocket.onopen = () => {
+      isRealFeed = true;
+      liveSocket.send(JSON.stringify({
+        ticks_history: 'R_100',
+        adjust_start_time: 1,
+        count: 35,
+        end: 'latest',
+        start: 1,
+        style: 'candles',
+        granularity: 60,
+        subscribe: 1
+      }));
+    };
+
+    liveSocket.onmessage = e => {
+      const d = JSON.parse(e.data);
+      if (d.candles) {
+        bars = d.candles.map(c => ({ o: +c.open, h: +c.high, l: +c.low, c: +c.close, epoch: c.epoch }));
+        spot = bars[bars.length - 1].c;
+        prevSpot = spot;
+        $('spotTxt').textContent = spot.toFixed(2);
+        const ema20 = renderChart();
+        const rsi = getRsi(7);
+        $('rsiTxt').textContent = rsi.toFixed(1);
+        evaluateStrategy(ema20, rsi);
+      } else if (d.ohlc) {
+        const c = d.ohlc;
+        prevSpot = spot || +c.close;
+        spot = +c.close;
+        const bar = { o: +c.open, h: +c.high, l: +c.low, c: +c.close, epoch: c.open_time };
+
+        if (bars.length && bars[bars.length - 1].epoch === bar.epoch) {
+          bars[bars.length - 1] = bar;
+        } else {
+          bars.push(bar);
+          if (bars.length > 50) bars.shift();
+        }
+
+        $('spotTxt').textContent = spot.toFixed(2);
+        $('spotTxt').style.color = spot >= prevSpot ? '#10b981' : '#ef4444';
+        const ema20 = renderChart();
+        const rsi = getRsi(7);
+        $('rsiTxt').textContent = rsi.toFixed(1);
+        evaluateStrategy(ema20, rsi);
+      }
+    };
+
+    liveSocket.onerror = () => { isRealFeed = false; };
+    liveSocket.onclose = () => {
+      isRealFeed = false;
+      $('sigTxt').textContent = '⚠️ FEED DISCONNECTED • RECONNECTING...';
+      reconnectTimer = setTimeout(connectRealDeriv, 3000);
+    };
+  } catch (err) {
+    isRealFeed = false;
+    reconnectTimer = setTimeout(connectRealDeriv, 3000);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const ses = localStorage.getItem(SES_KEY), db = getDB();
+  if (ses && db[ses]) enterTerminal(db[ses]);
+  const oaAcct = localStorage.getItem('wt_oauth_acct'), oaTok = localStorage.getItem('wt_oauth_tok');
+  if (oaAcct && oaTok) {
+    apiTok = oaTok; derivReady = true; derivLoginId = oaAcct;
+    if ($('apiTokIn')) $('apiTokIn').value = oaTok;
+    syncWallet(); refreshStats();
+    note('apiAlert', `✅ OAuth Linked (${derivLoginId}) • Ready for Live Trading`, 'ok');
+  }
+});
+
+async function refreshLiveBalance() {
+  if (!derivReady || !apiTok) return;
+  try {
+    const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
+    const r = await fetch(optBase + '/accounts', {
+      headers: { 'Authorization': 'Bearer ' + apiTok, 'Deriv-App-ID': DERIV_APP_ID }
+    });
+    if (!r.ok) return;
+    const json = await r.json();
+    const list = Array.isArray(json.data) ? json.data : (json.data && json.data.accounts ? json.data.accounts : []);
+    const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR') || String(a.id || a.account_id || '').startsWith('ROT')) || list[0];
+    if (realAcc) {
+      derivLoginId = realAcc.id || realAcc.account_id || derivLoginId;
+      realBal = +(realAcc.balance || 0);
+      syncWallet();
+      refreshStats();
+      note('apiAlert', `✅ Linked (${derivLoginId}) • Live Balance: $${realBal.toFixed(2)}`, 'ok');
+    }
+  } catch (_) {}
+}
+setInterval(refreshLiveBalance, 15000);
+setTimeout(refreshLiveBalance, 1500);
 </script>
 </body>
 </html>
