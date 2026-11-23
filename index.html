@@ -92,7 +92,8 @@
 
     <div class="pill" style="margin-top:8px;text-align:left;">
       <div class="row" style="font-size:10px;">
-        <span style="color:#94a3b8;">1-MIN CANDLES • EMA-20:: <strong id="emaTxt" style="color:#fff;">--.--</strong></span>
+                <span style="color:#94a3b8;display:flex;align-items:center;gap:4px;flex-wrap:wrap"><button type="button" id="tf1Btn" onclick="setChartTf('1M')" style="padding:2px 6px;border-radius:4px;border:none;background:#10b981;color:#090d16;font-weight:800;font-size:9px;cursor:pointer">1M</button><button type="button" id="tf15Btn" onclick="setChartTf('15M')" style="padding:2px 6px;border-radius:4px;border:1px solid #334155;background:transparent;color:#94a3b8;font-weight:800;font-size:9px;cursor:pointer">15M</button><span>EMA-20: <strong id="emaTxt" style="color:#f59e0b">--</strong></span><span id="m15Badge" style="padding:1px 5px;border-radius:4px;background:#1e293b;color:#94a3b8;font-weight:800;font-size:9px">M15 --</span></span>
+
         <span id="sigTxt" style="color:#3b82f6;font-weight:800;">CONNECTING DERIV...</span>
       </div>
       <canvas id="candleCanvas" width="540" height="185"></canvas>
@@ -771,13 +772,48 @@ function calcEMA(values, period) {
   return ema;
 }
 
+let chartTf = '1M';
+let bars15 = [];
+
+function buildBars15() {
+  const out = [];
+  for (let i = 0; i < bars.length; i += 15) {
+    const chunk = bars.slice(i, i + 15);
+    if (!chunk.length) continue;
+    out.push({
+      o: chunk[0].o,
+      h: Math.max(...chunk.map(b => b.h)),
+      l: Math.min(...chunk.map(b => b.l)),
+      c: chunk[chunk.length - 1].c
+    });
+  }
+  bars15 = out;
+  return out;
+}
+
+function setChartTf(tf) {
+  chartTf = tf;
+  const b1 = $('tf1Btn'), b15 = $('tf15Btn');
+  if (b1 && b15) {
+    b1.style.background = tf === '1M' ? '#10b981' : 'transparent';
+    b1.style.color = tf === '1M' ? '#090d16' : '#94a3b8';
+    b1.style.border = tf === '1M' ? 'none' : '1px solid #334155';
+    b15.style.background = tf === '15M' ? '#10b981' : 'transparent';
+    b15.style.color = tf === '15M' ? '#090d16' : '#94a3b8';
+    b15.style.border = tf === '15M' ? 'none' : '1px solid #334155';
+  }
+  renderChart();
+}
+
 function renderChart() {
+  buildBars15();
+  const srcBars = (chartTf === '15M' && bars15.length >= 2) ? bars15 : bars;
   const cv = $('candleCanvas');
-  if (!cv || !bars.length) return;
+  if (!cv || !srcBars.length) return;
   const ctx = cv.getContext('2d'), w = cv.width, h = cv.height;
   ctx.clearRect(0, 0, w, h);
 
-  const list = bars.slice(-24);
+  const list = srcBars.slice(-24);
   const hi = Math.max(...list.map(b => b.h)) + 0.5;
   const lo = Math.min(...list.map(b => b.l)) - 0.5;
   const yOf = p => h - 14 - ((p - lo) / (hi - lo || 1)) * (h - 28);
@@ -785,16 +821,18 @@ function renderChart() {
   ctx.strokeStyle = '#151f32'; ctx.lineWidth = 1;
   for (let y = 35; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
-  const closes = bars.map(b => b.c);
-  const ema20 = calcEMA(closes.slice(-25), 20);
-  $('emaTxt').textContent = ema20.toFixed(2);
+  const closes1 = bars.map(b => b.c);
+  const ema20_1m = calcEMA(closes1.slice(-25), 20);
+  const srcCloses = srcBars.map(b => b.c);
+  const displayEma = calcEMA(srcCloses.slice(-25), Math.min(20, srcCloses.length));
+  $('emaTxt').textContent = displayEma.toFixed(2);
 
   const step = (w - 20) / list.length, bw = Math.max(6, step * 0.55);
   ctx.save(); ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.8;
   ctx.beginPath();
   list.forEach((_, i) => {
-    const subCloses = closes.slice(0, closes.length - list.length + i + 1);
-    const val = calcEMA(subCloses.slice(-25), 20);
+    const subCloses = srcCloses.slice(0, srcCloses.length - list.length + i + 1);
+    const val = calcEMA(subCloses.slice(-25), Math.min(20, subCloses.length));
     const x = 10 + i * step + step / 2;
     if (i === 0) ctx.moveTo(x, yOf(val));
     else ctx.lineTo(x, yOf(val));
@@ -807,14 +845,24 @@ function renderChart() {
     ctx.beginPath(); ctx.moveTo(x, yOf(b.h)); ctx.lineTo(x, yOf(b.l)); ctx.stroke();
     ctx.fillRect(x - bw / 2, yOf(Math.max(b.o, b.c)), bw, Math.max(2, Math.abs(yOf(b.o) - yOf(b.c))));
   });
-  return ema20;
+  return ema20_1m;
 }
+
 
 function evaluateStrategy(ema20, rsi) {
   if (bars.length < 20) return;
   const closes = bars.map(b => b.c);
   const prevEma20 = calcEMA(closes.slice(-26, -1), 20);
   const emaSlope = ema20 - prevEma20;
+  const badge15 = $('m15Badge');
+  if (badge15 && bars15.length >= 5) {
+    const c15 = bars15.map(b => b.c);
+    const ema15 = calcEMA(c15.slice(-20), Math.min(20, c15.length));
+    const bull15 = spot > ema15;
+    badge15.textContent = bull15 ? 'M15 UP' : 'M15 DN';
+    badge15.style.background = bull15 ? 'rgba(16,185,129,.2)' : 'rgba(239,68,68,.2)';
+    badge15.style.color = bull15 ? '#10b981' : '#ef4444';
+  }
 
   const recentRanges = bars.slice(-10).map(b => b.h - b.l);
   const avgRange = recentRanges.reduce((a, b) => a + b, 0) / recentRanges.length;
@@ -919,7 +967,7 @@ function connectRealDeriv()
         liveSocket.send(JSON.stringify({
           ticks_history: 'R_10',
           adjust_start_time: 1,
-          count: 35,
+          count: 360,
           end: 'latest',
           style: 'candles',
           granularity: 60,
@@ -952,7 +1000,7 @@ function connectRealDeriv()
             bars[bars.length - 1] = bar;
           } else {
             bars.push(bar);
-            if (bars.length > 50) bars.shift();
+            if (bars.length > 360) bars.shift();
           }
 
           $('spotTxt').textContent = spot.toFixed(2);
