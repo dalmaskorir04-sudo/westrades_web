@@ -101,7 +101,8 @@
     <div class="grid3" style="margin-top:8px;">
       <div class="pill"><div class="lbl">Balance</div><div class="val" id="balTxt">$10,000.00</div></div>
       <div class="pill"><div class="lbl">Stake ($)</div><input id="stakeIn" type="number" value="10" min="1" oninput="update1to2()" style="padding:3px;text-align:center;font-weight:800;margin-top:2px;" /></div>
-              <div class="pill"><div id="rrLbl" class="lbl">1:2 Profit</div><div id="rrTxt" class="val" style="color:#60a5fa;">+$20.00</div></div>
+                      <div class="pill"><div id="rrLbl" class="lbl">MULTIPLIER TP (1:2)</div><div id="payoutTxt" class="val" style="color:#60a5fa">+$20.00</div></div>
+     
 
     </div>
 
@@ -551,7 +552,8 @@ const _origFetch = window.fetch; window.fetch = (u, o = {}) => String(u).include
     }
     refreshSniperBtn();
   }
-
+$('stakeIn').oninput = () => { const s = parseFloat($('stakeIn').value) || 0; $('payoutTxt').textContent = '+$' + (s * 2).toFixed(2); };
+ 
     let activeCloseFn = null;
 let lastTradeClosedAt = 0;
 function closeActiveTrade() {
@@ -570,8 +572,9 @@ async function execTrade(dir, auto = false) {
   const isLong = (dir === 'RISE' || dir === 'CALL' || dir === 'MULTUP');
   const contractType = isLong ? 'MULTUP' : 'MULTDOWN';
   const labelDir = isLong ? 'MULT UP' : 'MULT DOWN';
-  const tradeTP = +Math.max(0.50, stk * 0.40).toFixed(2);
-  const tradeSL = +Math.max(0.25, stk * 0.20).toFixed(2);
+    const tradeTP = +(stk * 2).toFixed(2);
+  const tradeSL = +stk.toFixed(2);
+ 
   const closeBtn = $('closeTradeBtn');
 
   if (acct === 'REAL') {
@@ -645,7 +648,7 @@ async function execTrade(dir, auto = false) {
         if (d.msg_type === 'buy') {
           liveContractId = d.buy.contract_id;
           if (closeBtn) closeBtn.style.display = 'block';
-          auto60Timer = setTimeout(() => { if (activeCloseFn) activeCloseFn(); }, 60000);
+          
           note('tradeAlert', `⚡ LIVE ${labelDir} (60s MAX) • TP +$${tradeTP} / SL -$${tradeSL}`, '');
         } else if (d.msg_type === 'proposal_open_contract') {
           const poc = d.proposal_open_contract;
@@ -729,17 +732,16 @@ async function execTrade(dir, auto = false) {
 
   activeCloseFn = () => finishDemo(latestDemoPnl, 'MANUAL');
 
-  const timer = setInterval(() => {
+    const timer = setInterval(() => {
     const pctMove = isLong ? ((spot - entry) / entry) : ((entry - spot) / entry);
     latestDemoPnl = +(stk * 100 * pctMove).toFixed(2);
-    const secsLeft = Math.max(0, Math.ceil((60000 - (Date.now() - startedAt)) / 1000));
 
     if (latestDemoPnl >= tradeTP) return finishDemo(tradeTP, 'TP/SL');
     if (latestDemoPnl <= -tradeSL) return finishDemo(-tradeSL, 'TP/SL');
-    if (secsLeft <= 0) return finishDemo(latestDemoPnl, '60S');
 
-    note('tradeAlert', `⚡ ${labelDir} (${secsLeft}s) • Live P/L: ${latestDemoPnl >= 0 ? '+' : ''}$${latestDemoPnl.toFixed(2)} (TP +$${tradeTP})`, latestDemoPnl >= 0 ? 'ok' : '');
+    note('tradeAlert', `⚡ ${labelDir} @ ${entry.toFixed(2)} • Live P/L: ${latestDemoPnl >= 0 ? '+' : ''}$${latestDemoPnl.toFixed(2)} (TP +$${tradeTP} / SL -$${tradeSL})`, latestDemoPnl >= 0 ? 'ok' : '');
   }, 400);
+ 
  }
 
 // True Wilder's RSI-7
