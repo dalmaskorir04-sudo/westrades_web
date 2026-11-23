@@ -84,7 +84,7 @@
 
   <div id="viewTrade">
     <div class="grid3">
-      <div class="pill"><div class="lbl">R_100 Live</div><div class="val" id="spotTxt">--.--</div></div>
+      <div class="pill"><div class="lbl">R_10 Live</div><div class="val" id="spotTxt">--.--</div></div>
       <div class="pill"><div class="lbl">RSI-7</div><div class="val" id="rsiTxt" style="color:#f59e0b;">50.0</div></div>
            <div class="pill" onclick="resetSession()" style="cursor:pointer;" title="Tap to reset Session P/L"><div class="lbl">Session P/L 🔄</div><div id="pnlTxt" class="val" style="color:#10b981;">+$0.00</div></div>
 
@@ -118,8 +118,8 @@
 <div id="manualSigBox" class="alert" style="text-align:center;font-weight:800;letter-spacing:.4px;margin-top:8px">⏳ ANALYZING EMA-20 + ATR + RSI-7...</div>
 
     <div class="grid2" style="margin-top:8px;">
-              <button type="button" class="btn-green" onclick="execTrade('MULTUP')">📈 MULT UP (100x)</button>
-        <button type="button" class="btn-red" onclick="execTrade('MULTDOWN')">📉 MULT DOWN (100x)</button>
+              <button type="button" class="btn-green" onclick="execTrade('MULTUP')">📈 MULT UP (1000x)</button>
+        <button type="button" class="btn-red" onclick="execTrade('MULTDOWN')">📉 MULT DOWN (1000x)</button>
 
     </div>
     <div id="tradeAlert" class="alert hide" style="text-align:center;font-weight:700;"></div>
@@ -629,8 +629,8 @@ async function execTrade(dir, auto = false) {
           basis: 'stake',
           contract_type: contractType,
           currency: 'USD',
-          multiplier: 100,
-          symbol: 'R_100',
+          multiplier: 1000,
+          symbol: 'R_10',
           limit_order: {
             take_profit: tradeTP,
             stop_loss: tradeSL
@@ -666,7 +666,7 @@ async function execTrade(dir, auto = false) {
             realBal = +(realBal + net).toFixed(2);
             pnl = +(pnl + net).toFixed(2);
             syncWallet();
-            addLog(`REAL R_100 ${labelDir} 100x`, net);
+            addLog(`REAL R_10 ${labelDir} 1000x`, net);
             refreshStats();
             wsOrder.close(); busy = false;
 
@@ -711,7 +711,7 @@ async function execTrade(dir, auto = false) {
     demoBal = +(demoBal + net).toFixed(2);
     pnl = +(pnl + net).toFixed(2);
     syncWallet();
-    addLog(`DEMO R_100 ${labelDir} 100x`, net);
+    addLog(`DEMO R_10 ${labelDir} 1000x`, net);
     refreshStats();
     busy = false;
 
@@ -735,7 +735,7 @@ async function execTrade(dir, auto = false) {
 
     const timer = setInterval(() => {
     const pctMove = isLong ? ((spot - entry) / entry) : ((entry - spot) / entry);
-    latestDemoPnl = +(stk * 100 * pctMove).toFixed(2);
+    latestDemoPnl = +(stk * 1000 * pctMove).toFixed(2);
 
     if (latestDemoPnl >= tradeTP) return finishDemo(tradeTP, 'TP/SL');
     if (latestDemoPnl <= -tradeSL) return finishDemo(-tradeSL, 'TP/SL');
@@ -818,7 +818,7 @@ function evaluateStrategy(ema20, rsi) {
 
   const recentRanges = bars.slice(-10).map(b => b.h - b.l);
   const avgRange = recentRanges.reduce((a, b) => a + b, 0) / recentRanges.length;
-  const volOk = avgRange >= 0.9;
+  const volOk = avgRange >= 1.2;
 
   safeToArm = volOk && isRealFeed;
   const rb = $('regimeBox');
@@ -826,8 +826,8 @@ function evaluateStrategy(ema20, rsi) {
   rb.className = 'alert ' + (volOk ? 'ok' : 'err');
 
   const curBar = bars[bars.length - 1];
-  const upTrend = spot > (ema20 + 0.25) && emaSlope > 0.05;
-  const dnTrend = spot < (ema20 - 0.25) && emaSlope < -0.05;
+  const upTrend = spot > (ema20 + 0.80) && emaSlope > 0.12;
+  const dnTrend = spot < (ema20 - 0.80) && emaSlope < -0.12;
 
   const riseReady = volOk && upTrend && curBar && spot > curBar.o && rsi >= 42 && rsi <= 72 && spot > prevSpot;
   const fallReady = volOk && dnTrend && curBar && spot < curBar.o && rsi >= 28 && rsi <= 58 && spot < prevSpot;
@@ -840,13 +840,13 @@ function evaluateStrategy(ema20, rsi) {
 
   if (mb) {
     if (riseReady) {
-      mb.textContent = `📈 SIGNAL: ENTER MULT UP (100x) • EMA-20 UP + RSI ${rsi}`;
+      mb.textContent = `📈 SIGNAL: ENTER MULT UP (1000x) • EMA-20 UP + RSI ${rsi}`;
       mb.className = 'alert ok';
     } else if (fallReady) {
-      mb.textContent = `📉 SIGNAL: ENTER MULT DOWN (100x) • EMA-20 DOWN + RSI ${rsi}`;
+      mb.textContent = `📉 SIGNAL: ENTER MULT DOWN (1000x) • EMA-20 DOWN + RSI ${rsi}`;
       mb.className = 'alert err';
     } else if (!volOk) {
-      mb.textContent = `⏳ WAIT • LOW VOLATILITY (ATR ${avgRange.toFixed(2)} < 0.90)`;
+      mb.textContent = `⏳ WAIT • LOW VOLATILITY (ATR ${avgRange.toFixed(2)} < 1.20)`;
       mb.className = 'alert';
     } else if (upTrend && rsi > 72) {
       mb.textContent = `⏳ WAIT • UPTREND OVERBOUGHT (RSI ${rsi} — WAIT DIP)`;
@@ -859,9 +859,11 @@ function evaluateStrategy(ema20, rsi) {
       mb.className = 'alert';
     }
   }
+  const cooldownLeft = Math.max(0, Math.ceil((45000 - (Date.now() - lastTradeClosedAt)) / 1000));
+  const bullPullbackEntry = volOk && cooldownLeft === 0 && upTrend && curBar && spot > curBar.o && rsi >= 36 && rsi <= 46 && spot > prevSpot;
+  const bearPullbackEntry = volOk && cooldownLeft === 0 && dnTrend && curBar && spot < curBar.o && rsi >= 54 && rsi <= 64 && spot < prevSpot;
 
-  const bullPullbackEntry = volOk && upTrend && rsi <= 43 && spot > prevSpot;
-  const bearPullbackEntry = volOk && dnTrend && rsi >= 57 && spot < prevSpot;
+ 
 
   if (bullPullbackEntry) {
     $('sigTxt').textContent = `⚡ SNIPER MULT UP • Pullback Rejection (RSI ${rsi})`;
@@ -913,9 +915,9 @@ function connectRealDeriv()
 
       liveSocket.onopen = () => {
         isRealFeed = true;
-        $('sigTxt').textContent = '📡 STREAM LIVE • LOADING R_100...';
+        $('sigTxt').textContent = '📡 STREAM LIVE • LOADING R_10...';
         liveSocket.send(JSON.stringify({
-          ticks_history: 'R_100',
+          ticks_history: 'R_10',
           adjust_start_time: 1,
           count: 35,
           end: 'latest',
