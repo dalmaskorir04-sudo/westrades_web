@@ -818,7 +818,7 @@ function evaluateStrategy(ema20, rsi) {
 
   const recentRanges = bars.slice(-10).map(b => b.h - b.l);
   const avgRange = recentRanges.reduce((a, b) => a + b, 0) / recentRanges.length;
-  const volOk = avgRange >= 1.2;
+  const volOk = avgRange >= 0.65;
 
   safeToArm = volOk && isRealFeed;
   const rb = $('regimeBox');
@@ -826,8 +826,8 @@ function evaluateStrategy(ema20, rsi) {
   rb.className = 'alert ' + (volOk ? 'ok' : 'err');
 
   const curBar = bars[bars.length - 1];
-  const upTrend = spot > (ema20 + 0.80) && emaSlope > 0.12;
-  const dnTrend = spot < (ema20 - 0.80) && emaSlope < -0.12;
+  const upTrend = spot > (ema20 + 0.45) && emaSlope > 0.08;
+  const dnTrend = spot < (ema20 - 0.45) && emaSlope < -0.08;
 
   const riseReady = volOk && upTrend && curBar && spot > curBar.o && rsi >= 42 && rsi <= 72 && spot > prevSpot;
   const fallReady = volOk && dnTrend && curBar && spot < curBar.o && rsi >= 28 && rsi <= 58 && spot < prevSpot;
@@ -846,7 +846,7 @@ function evaluateStrategy(ema20, rsi) {
       mb.textContent = `📉 SIGNAL: ENTER MULT DOWN (1000x) • EMA-20 DOWN + RSI ${rsi}`;
       mb.className = 'alert err';
     } else if (!volOk) {
-      mb.textContent = `⏳ WAIT • LOW VOLATILITY (ATR ${avgRange.toFixed(2)} < 1.20)`;
+      mb.textContent = `⏳ WAIT • LOW VOLATILITY (ATR ${avgRange.toFixed(2)} < 0.65)`;
       mb.className = 'alert';
     } else if (upTrend && rsi > 72) {
       mb.textContent = `⏳ WAIT • UPTREND OVERBOUGHT (RSI ${rsi} — WAIT DIP)`;
