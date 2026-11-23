@@ -285,8 +285,9 @@
     
   function update1to2() {
     const stk = parseFloat($('stakeIn').value) || 0;
-    if ($('rrLbl')) $('rrLbl').textContent = 'Deriv Est. (~95%)';
-    $('rrTxt').textContent = '~+$' + (stk * 0.95).toFixed(2);
+      if ($('rrLbl')) $('rrLbl').textContent = 'MULTIPLIER TP (1:2)';
+  if ($('payoutTxt')) $('payoutTxt').textContent = '+$' + (stk * 2).toFixed(2);
+ 
   }
 
   function resetSession() {
