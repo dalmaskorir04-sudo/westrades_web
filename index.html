@@ -961,7 +961,8 @@ function connectRealDeriv() {
   if (liveSocket) { try { liveSocket.close(); } catch (_) {} }
   $('sigTxt').textContent = '📡 CONNECTING DERIV R_10...';
   try {
-            liveSocket = new WebSocket('wss://://derivws.com');
+                liveSocket = new WebSocket(atob('d3NzOi8vd3MuZGVyaXZ3cy5jb20vd2Vic29ja2V0cy92Mz9hcHBfaWQ9MTA4OQ=='));
+   
    
    
     liveSocket.onopen = () => {
