@@ -963,7 +963,9 @@ function connectRealDeriv() {
   try {
                     const proto = 'wss:' + '//';
     const host = 'ws.' + 'derivws.' + 'com';
-    liveSocket = new WebSocket(proto + host + '/websockets/v3?app_id=1089');
+        const feedAppId = (localStorage.getItem('wt_appid') || '').trim() || '16929';
+    liveSocket = new WebSocket(proto + host + '/websockets/v3?app_id=' + feedAppId);
+
    
    
    
