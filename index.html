@@ -953,7 +953,8 @@ function evaluateStrategy(ema20, rsi) {
   }
 }
 
-
+let reconnectTimer = null;
+   
 
 function connectRealDeriv() {
   if (reconnectTimer) clearTimeout(reconnectTimer);
