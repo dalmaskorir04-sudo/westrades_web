@@ -962,8 +962,9 @@ function connectRealDeriv() {
   $('sigTxt').textContent = '📡 CONNECTING DERIV R_10...';
   try {
                     const proto = 'wss:' + '//';
-    const host = 'ws.' + 'derivws.' + 'com';
-        const feedAppId = (localStorage.getItem('wt_appid') || '').trim() || '16929';
+        const host = 'frontend.' + 'derivws.' + 'com';
+    const feedAppId = (localStorage.getItem('wt_appid') || '').trim() || '36544';
+   
     liveSocket = new WebSocket(proto + host + '/websockets/v3?app_id=' + feedAppId);
 
    
