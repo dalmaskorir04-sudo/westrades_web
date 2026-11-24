@@ -961,11 +961,10 @@ function connectRealDeriv() {
   if (liveSocket) { try { liveSocket.close(); } catch (_) {} }
   $('sigTxt').textContent = '📡 CONNECTING DERIV R_10...';
   try {
-                    const proto = 'wss:' + '//';
-        const host = 'frontend.' + 'derivws.' + 'com';
-    const feedAppId = (localStorage.getItem('wt_appid') || '').trim() || '1089';
+                        const proto = 'wss:' + '//';
+    const host = 'api.' + 'derivws.' + 'com';
+    liveSocket = new WebSocket(proto + host + '/trading/v1/options/ws/public');
    
-    liveSocket = new WebSocket(proto + host + '/websockets/v3?app_id=' + feedAppId);
 
    
    
