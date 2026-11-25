@@ -805,7 +805,8 @@ async function execTrade(dir, auto = false) {
 }
 
 // True Wilder's RSI-7
-function calcRSI(values, period = 7) {
+function getRsi(values, period = 7) {
+ 
   if (values.length < period + 1) return 50;
   let gains = 0, losses = 0;
   for (let i = values.length - period; i < values.length; i++) {
