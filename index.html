@@ -750,16 +750,18 @@ async function execTrade(dir, auto = false) {
   const isSplit = stk >= 2;
   const leg1Stk = isSplit ? +(stk / 2).toFixed(2) : stk;
   const leg2Stk = isSplit ? +(stk - leg1Stk).toFixed(2) : 0;
-  let leg1Sold = false, leg1Pnl = 0, leg2Pnl = 0, beLocked = false;
+    let leg1Sold = false, leg1Pnl = 0, leg2Pnl = 0, beLocked = false, leg1Credited = false;
 
   const finishDemo = (net, reason = 'TP/SL') => {
     clearInterval(timer);
     if (closeBtn) closeBtn.style.display = 'none';
     activeCloseFn = null;
     lastTradeClosedAt = Date.now();
-    demoBal = +(demoBal + net).toFixed(2);
-    pnl = +(pnl + net).toFixed(2);
-    syncWallet();
+    const remNet = +(net - (leg1Credited ? leg1Pnl : 0)).toFixed(2);
+    demoBal = +(demoBal + remNet).toFixed(2);
+    pnl = +(pnl + remNet).toFixed(2);
+    syncWallet()
+     ;
     addLog(`DEMO R_10 ${labelDir} SPLIT`, net);
     refreshStats();
     busy = false;
@@ -780,14 +782,21 @@ async function execTrade(dir, auto = false) {
     const pctMove = isLong ? ((spot - entry) / entry) : ((entry - spot) / entry);
     if (!leg1Sold) leg1Pnl = +(leg1Stk * 1000 * pctMove).toFixed(2);
     if (isSplit) leg2Pnl = +(leg2Stk * 1000 * pctMove).toFixed(2);
-
-        if (isSplit) {
+    if (isSplit) {
       const step2 = +(leg2Stk * 0.50).toFixed(2);
-      if (!leg1Sold && leg1Pnl >= +(leg1Stk * 0.50).toFixed(2)) {
+ 
+              if (!leg1Sold && leg1Pnl >= +(leg1Stk * 0.50).toFixed(2)) {
         leg1Sold = true;
         leg1Pnl = +(leg1Stk * 0.50).toFixed(2);
         beLocked = 0.05;
-      }
+        leg1Credited = true;
+        demoBal = +(demoBal + leg1Pnl).toFixed(2);
+        pnl = +(pnl + leg1Pnl).toFixed(2);
+        syncWallet();
+        refreshStats();
+       
+              }
+        
       if (leg1Sold && leg2Pnl >= step2 * 2) {
         const newFloor = +(Math.floor(leg2Pnl / step2) * step2 - step2).toFixed(2);
         if (newFloor > beLocked) beLocked = newFloor;
