@@ -682,23 +682,28 @@ async function execTrade(dir, auto = false) {
           const lg = legs[legNum];
           lg.pnl = +(poc.profit || 0);
 
-          if (!poc.is_sold) {
+                    if (!poc.is_sold) {
+            const step2 = +(leg2Stk * 0.50).toFixed(2);
             if (isSplit && legNum === 1 && !lg.banked && lg.pnl >= +(leg1Stk * 0.50).toFixed(2)) {
               lg.banked = true;
-              legs[2].beLocked = true;
+              legs[2].beFloor = 0.05;
               sellLeg(1);
-            } else if (!isSplit && !legs[1].beLocked && lg.pnl >= +(leg1Stk * 0.50).toFixed(2)) {
-              legs[1].beLocked = true;
+            } else if (!isSplit && !(legs[1].beFloor > 0) && lg.pnl >= +(leg1Stk * 0.50).toFixed(2)) {
+              legs[1].beFloor = +(leg1Stk * 0.10).toFixed(2);
             }
-            if (!isSplit && legs[1].beLocked && lg.pnl <= +(leg1Stk * 0.10).toFixed(2)) sellLeg(1);
-            if (isSplit && legNum === 2 && legs[2].beLocked && lg.pnl <= 0.05) sellLeg(2);
+            if (isSplit && legNum === 2 && legs[2].beFloor > 0 && lg.pnl >= step2 * 2) {
+              const newFloor = +(Math.floor(lg.pnl / step2) * step2 - step2).toFixed(2);
+              if (newFloor > legs[2].beFloor) legs[2].beFloor = newFloor;
+            }
+            if (!isSplit && legs[1].beFloor > 0 && lg.pnl <= legs[1].beFloor) sellLeg(1);
+            if (isSplit && legNum === 2 && legs[2].beFloor > 0 && lg.pnl <= legs[2].beFloor) sellLeg(2);
 
             const totalLive = +(legs[1].pnl + (isSplit ? legs[2].pnl : 0)).toFixed(2);
             const tag = isSplit
-              ? (legs[1].sold ? ` • 💰 +$${legs[1].pnl.toFixed(2)} BANKED | 🛡️ RUNNER AT BE` : ` • 50/50 SPLIT`)
-              : (legs[1].beLocked ? ` • 🛡️ BE LOCKED` : '');
-            note('tradeAlert', `⚡ ${labelDir} LIVE P/L: ${totalLive >= 0 ? '+' : ''}$${totalLive.toFixed(2)}${tag}`, totalLive >= 0 ? 'ok' : '');
-          } else if (!lg.sold) {
+              ? (legs[1].sold ? ' • BANKED +$' + legs[1].pnl.toFixed(2) + ' | LOCK +$' + (legs[2].beFloor || 0).toFixed(2) : ' • 50/50 SPLIT')
+              : (legs[1].beFloor > 0 ? ' • LOCK +$' + legs[1].beFloor.toFixed(2) : '');
+            note('tradeAlert', labelDir + ' LIVE P/L: $' + totalLive + tag, totalLive >= 0 ? 'ok' : '')
+ ; } else if (!lg.sold) {
             lg.sold = true;
             realBal = +(realBal + lg.pnl).toFixed(2);
             pnl = +(pnl + lg.pnl).toFixed(2);
@@ -776,48 +781,51 @@ async function execTrade(dir, auto = false) {
     if (!leg1Sold) leg1Pnl = +(leg1Stk * 1000 * pctMove).toFixed(2);
     if (isSplit) leg2Pnl = +(leg2Stk * 1000 * pctMove).toFixed(2);
 
-    if (isSplit) {
+        if (isSplit) {
+      const step2 = +(leg2Stk * 0.50).toFixed(2);
       if (!leg1Sold && leg1Pnl >= +(leg1Stk * 0.50).toFixed(2)) {
         leg1Sold = true;
         leg1Pnl = +(leg1Stk * 0.50).toFixed(2);
-        beLocked = true;
+        beLocked = 0.05;
       }
-      if (!leg1Sold && leg1Pnl <= -leg1Stk && leg2Pnl <= -leg2Stk) {
-        return finishDemo(-stk, 'TP/SL');
+      if (leg1Sold && leg2Pnl >= step2 * 2) {
+        const newFloor = +(Math.floor(leg2Pnl / step2) * step2 - step2).toFixed(2);
+        if (newFloor > beLocked) beLocked = newFloor;
       }
-      if (leg1Sold && beLocked && leg2Pnl <= 0.05) {
-        return finishDemo(+(leg1Pnl + 0.05).toFixed(2), 'BE');
-      }
-      if (leg1Sold && leg2Pnl >= +(leg2Stk * 2).toFixed(2)) {
-        return finishDemo(+(leg1Pnl + leg2Stk * 2).toFixed(2), 'TP/SL');
-      }
+      if (!leg1Sold && leg1Pnl <= -leg1Stk && leg2Pnl <= -leg2Stk) return finishDemo(-stk, 'TP/SL');
+      if (leg1Sold && beLocked > 0 && leg2Pnl <= beLocked) return finishDemo(+(leg1Pnl + beLocked).toFixed(2), 'BE');
+      if (leg1Sold && leg2Pnl >= +(leg2Stk * 2).toFixed(2)) return finishDemo(+(leg1Pnl + leg2Stk * 2).toFixed(2), 'TP/SL');
     } else {
-      if (!beLocked && leg1Pnl >= +(leg1Stk * 0.50).toFixed(2)) beLocked = true;
+      if (!(beLocked > 0) && leg1Pnl >= +(leg1Stk * 0.50).toFixed(2)) beLocked = +(leg1Stk * 0.10).toFixed(2);
       if (leg1Pnl >= tradeTP) return finishDemo(tradeTP, 'TP/SL');
-      if (beLocked && leg1Pnl <= +(leg1Stk * 0.10).toFixed(2)) return finishDemo(+(leg1Stk * 0.10).toFixed(2), 'BE');
-      if (!beLocked && leg1Pnl <= -tradeSL) return finishDemo(-tradeSL, 'TP/SL');
+      if (beLocked > 0 && leg1Pnl <= beLocked) return finishDemo(beLocked, 'BE');
+      if (!(beLocked > 0) && leg1Pnl <= -tradeSL) return finishDemo(-tradeSL, 'TP/SL');
     }
 
     const totalLive = +(leg1Pnl + leg2Pnl).toFixed(2);
-        const tag = isSplit ? (leg1Sold ? ' • BANKED + RUNNER BE' : ' • 50/50 SPLIT') : (beLocked ? ' • BE' : '');
+    const tag = isSplit
+      ? (leg1Sold ? ' • BANKED +$' + leg1Pnl.toFixed(2) + ' | LOCK +$' + beLocked.toFixed(2) : ' • 50/50 SPLIT')
+      : (beLocked > 0 ? ' • LOCK +$' + beLocked.toFixed(2) : '');
     note('tradeAlert', labelDir + ' @ ' + entry.toFixed(2) + ' | P/L: $' + totalLive + tag, totalLive >= 0 ? 'ok' : '');
-  }, 400);
+  }, 400)
+ 
 }
 
 // True Wilder's RSI-7
 function getRsi(values, period = 7) {
- 
-  if (values.length < period + 1) return 50;
+  if (!values || values.length < period + 1) return 50;
   let gains = 0, losses = 0;
   for (let i = values.length - period; i < values.length; i++) {
-    const diff = values[i] - values[i - 1];
+    const cur = typeof values[i] === 'object' ? values[i].c : values[i];
+    const prev = typeof values[i - 1] === 'object' ? values[i - 1].c : values[i - 1];
+    const diff = cur - prev;
     if (diff >= 0) gains += diff;
     else losses -= diff;
   }
-  if (losses === 0) return 100;
+  if (losses === 0) return gains === 0 ? 50 : 100;
   const rs = (gains / period) / (losses / period);
   return +(100 - (100 / (1 + rs))).toFixed(1);
-
+ 
  }
 
 // True Exponential Moving Average (EMA)
