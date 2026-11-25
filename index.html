@@ -579,7 +579,7 @@ async function execTrade(dir, auto = false) {
  
   const closeBtn = $('closeTradeBtn');
 
-  if (acct === 'REAL') {
+    if (acct === 'REAL') {
     if (!derivReady || !apiTok) {
       armed = false; refreshSniperBtn();
       return note('tradeAlert', '⚠️ Connect your Deriv API token first.', 'err');
@@ -590,17 +590,23 @@ async function execTrade(dir, auto = false) {
     }
     busy = true;
     if (auto) { snipes++; refreshSniperBtn(); }
-    note('tradeAlert', `🚀 OPENING REAL ${labelDir} 60s ($${stk} | TP +$${tradeTP} / SL -$${tradeSL})...`, '');
+
+    const isSplit = stk >= 2;
+    const leg1Stk = isSplit ? +(stk / 2).toFixed(2) : stk;
+    const leg2Stk = isSplit ? +(stk - leg1Stk).toFixed(2) : 0;
+    note('tradeAlert', isSplit
+      ? `🚀 OPENING REAL SPLIT ${labelDir} ($${leg1Stk} Banked + $${leg2Stk} Runner)...`
+      : `🚀 OPENING REAL ${labelDir} ($${stk} | TP +$${tradeTP})...`, '');
 
     try {
-      const optBase = ['https://api', 'derivws', 'com/trading/v1/options'].join('.');
+      const optBase = ['https://', 'api.', 'derivws.', 'com/trading/v1/options'].join('');
       const hdrs = { 'Authorization': 'Bearer ' + apiTok, 'Content-Type': 'application/json' };
       const accRes = await fetch(optBase + '/accounts', { headers: hdrs });
       const accJson = await accRes.json();
       if (!accRes.ok) throw new Error('Deriv account check failed');
 
-      const list = Array.isArray(accJson.data) ? accJson.data : (accJson.data?.accounts || []);
-      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR') || String(a.id || a.account_id || '').startsWith('ROT'));
+      const list = Array.isArray(accJson.data) ? accJson.data : (accJson.data && accJson.data.accounts) || [];
+      const realAcc = list.find(a => a.account_type === 'real' || String(a.id || a.account_id || '').startsWith('CR')) || list[0];
       if (!realAcc) throw new Error('No Real Options account found');
 
       const accId = realAcc.id || realAcc.account_id;
@@ -608,91 +614,117 @@ async function execTrade(dir, auto = false) {
       const otpJson = await otpRes.json();
       if (!otpRes.ok) throw new Error('Deriv OTP auth failed');
 
-      const wsUrl = (otpJson.data && (otpJson.data.url || otpJson.data.ws_url)) || ('wss://://derivws.com' + encodeURIComponent((otpJson.data && otpJson.data.otp) || ''));
+      const proto = 'wss:' + '//';
+      const host = 'ws.' + 'derivws.' + 'com';
+      const wsUrl = (otpJson.data && (otpJson.data.url || otpJson.data.ws_url)) || (proto + host + '/websockets/v3?app_id=1089&otp=' + encodeURIComponent((otpJson.data && otpJson.data.otp) || ''));
       const wsOrder = new WebSocket(wsUrl);
-      let liveContractId = null;
-      let auto60Timer = null;
 
-      activeCloseFn = () => {
-        if (auto60Timer) clearTimeout(auto60Timer);
-        if (liveContractId && wsOrder.readyState === 1) {
-          wsOrder.send(JSON.stringify({ sell: liveContractId, price: 0 }));
-          if (closeBtn) closeBtn.style.display = 'none';
+      const legs = {
+        1: { id: null, stk: leg1Stk, pnl: 0, sold: false, banked: false },
+        2: { id: null, stk: leg2Stk, pnl: 0, sold: false, beLocked: false }
+      };
+      if (!isSplit) legs[2].sold = true;
+
+      const sellLeg = legNum => {
+        const lg = legs[legNum];
+        if (lg && lg.id && !lg.sold && wsOrder.readyState === 1) {
+          wsOrder.send(JSON.stringify({ sell: lg.id, price: 0 }));
         }
       };
 
-      wsOrder.onopen = () => wsOrder.send(JSON.stringify({
-        buy: '1',
-        subscribe: 1,
-        price: stk,
-        parameters: {
-          amount: stk,
-          basis: 'stake',
-          contract_type: contractType,
-          currency: 'USD',
-          multiplier: 1000,
-          symbol: 'R_10',
-          limit_order: {
-            take_profit: tradeTP,
-            stop_loss: tradeSL
+      activeCloseFn = () => {
+        sellLeg(1);
+        sellLeg(2);
+        if (closeBtn) closeBtn.style.display = 'none';
+      };
+
+      wsOrder.onopen = () => {
+        wsOrder.send(JSON.stringify({
+          buy: '1', subscribe: 1, price: leg1Stk, passthrough: { leg: 1 },
+          parameters: {
+            amount: leg1Stk, basis: 'stake', contract_type: contractType, currency: 'USD',
+            multiplier: 1000, symbol: 'R_10',
+            limit_order: { take_profit: +(leg1Stk * 2).toFixed(2), stop_loss: leg1Stk }
           }
+        }));
+        if (isSplit) {
+          setTimeout(() => {
+            if (wsOrder.readyState === 1) {
+              wsOrder.send(JSON.stringify({
+                              buy: '1', subscribe: 1, price: leg2Stk, passthrough: { leg: 2 },
+               
+                parameters: {
+                  amount: leg2Stk, basis: 'stake', contract_type: contractType, currency: 'USD',
+                  multiplier: 1000, symbol: 'R_10',
+                  limit_order: { take_profit: +(leg2Stk * 2).toFixed(2), stop_loss: leg2Stk }
+                }
+              }));
+            }
+          }, 220);
         }
-      }));
+      };
 
       wsOrder.onmessage = e => {
         const d = JSON.parse(e.data);
         if (d.error) {
-          if (auto60Timer) clearTimeout(auto60Timer);
           if (closeBtn) closeBtn.style.display = 'none';
           activeCloseFn = null; wsOrder.close(); busy = false;
           return note('tradeAlert', '❌ ' + d.error.message, 'err');
         }
         if (d.msg_type === 'buy') {
-          liveContractId = d.buy.contract_id;
+          const legNum = (d.passthrough && d.passthrough.leg) || 1;
+          legs[legNum].id = d.buy.contract_id;
           if (closeBtn) closeBtn.style.display = 'block';
-          
-          note('tradeAlert', `⚡ LIVE ${labelDir} (60s MAX) • TP +$${tradeTP} / SL -$${tradeSL}`, '');
         } else if (d.msg_type === 'proposal_open_contract') {
           const poc = d.proposal_open_contract;
           if (!poc) return;
-                    if (!poc.is_sold) {
-            const curPnl = +(poc.profit || 0);
-            const beTrigger = +(stk * 0.50).toFixed(2);
-            const beFloor = +(stk * 0.10).toFixed(2);
-            if (!wsOrder.beLocked && curPnl >= beTrigger) wsOrder.beLocked = true;
-            if (wsOrder.beLocked && curPnl <= beFloor) {
-              if (activeCloseFn) activeCloseFn();
-              return;
-            }
-            const beTag = wsOrder.beLocked ? ` • 🛡️ BE +$${beFloor}` : '';
-            note('tradeAlert', `⚡ ${labelDir} LIVE P/L: ${curPnl >= 0 ? '+' : ''}$${curPnl.toFixed(2)}${beTag} (TP +$${tradeTP})`, curPnl >= 0 ? 'ok' : '');
-          } else {
+          const legNum = poc.contract_id === legs[2].id ? 2 : 1;
+          const lg = legs[legNum];
+          lg.pnl = +(poc.profit || 0);
 
-            if (auto60Timer) clearTimeout(auto60Timer);
-            if (closeBtn) closeBtn.style.display = 'none';
-            activeCloseFn = null;
-            lastTradeClosedAt = Date.now();
-            const net = +poc.profit;
-            realBal = +(realBal + net).toFixed(2);
-            pnl = +(pnl + net).toFixed(2);
-            syncWallet();
-            addLog(`REAL R_10 ${labelDir} 1000x`, net);
-            refreshStats();
-            wsOrder.close(); busy = false;
-
-            const tp = parseFloat($('tpIn').value) || 9999;
-            const sl = parseFloat($('slIn').value) || 9999;
-            const max = parseInt($('maxSnipeIn').value, 10) || 10;
-            if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
-              armed = false; refreshSniperBtn();
-              return note('tradeAlert', `🛑 SESSION TARGET REACHED • P/L: $${pnl.toFixed(2)}`, 'ok');
+          if (!poc.is_sold) {
+            if (isSplit && legNum === 1 && !lg.banked && lg.pnl >= +(leg1Stk * 0.50).toFixed(2)) {
+              lg.banked = true;
+              legs[2].beLocked = true;
+              sellLeg(1);
+            } else if (!isSplit && !legs[1].beLocked && lg.pnl >= +(leg1Stk * 0.50).toFixed(2)) {
+              legs[1].beLocked = true;
             }
-            note('tradeAlert', net >= 0 ? `✅ REAL MULT CLOSED (+$${net.toFixed(2)})` : `❌ REAL MULT LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
+            if (!isSplit && legs[1].beLocked && lg.pnl <= +(leg1Stk * 0.10).toFixed(2)) sellLeg(1);
+            if (isSplit && legNum === 2 && legs[2].beLocked && lg.pnl <= 0.05) sellLeg(2);
+
+            const totalLive = +(legs[1].pnl + (isSplit ? legs[2].pnl : 0)).toFixed(2);
+            const tag = isSplit
+              ? (legs[1].sold ? ` • 💰 +$${legs[1].pnl.toFixed(2)} BANKED | 🛡️ RUNNER AT BE` : ` • 50/50 SPLIT`)
+              : (legs[1].beLocked ? ` • 🛡️ BE LOCKED` : '');
+            note('tradeAlert', `⚡ ${labelDir} LIVE P/L: ${totalLive >= 0 ? '+' : ''}$${totalLive.toFixed(2)}${tag}`, totalLive >= 0 ? 'ok' : '');
+          } else if (!lg.sold) {
+            lg.sold = true;
+            realBal = +(realBal + lg.pnl).toFixed(2);
+            pnl = +(pnl + lg.pnl).toFixed(2);
+            syncWallet(); refreshStats();
+
+            if (legs[1].sold && legs[2].sold) {
+              if (closeBtn) closeBtn.style.display = 'none';
+              activeCloseFn = null;
+              lastTradeClosedAt = Date.now();
+              const netTotal = +(legs[1].pnl + (isSplit ? legs[2].pnl : 0)).toFixed(2);
+              addLog(`REAL R_10 ${labelDir} SPLIT`, netTotal);
+              wsOrder.close(); busy = false;
+
+              const tp = parseFloat($('tpIn').value) || 9999;
+              const sl = parseFloat($('slIn').value) || 9999;
+              const max = parseInt($('maxSnipeIn').value, 10) || 10;
+              if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
+                armed = false; refreshSniperBtn();
+                return note('tradeAlert', `🛑 SESSION TARGET REACHED • P/L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
+              }
+              note('tradeAlert', netTotal >= 0 ? `✅ SPLIT CLOSED (+$${netTotal.toFixed(2)})` : `❌ SPLIT SL (-$${Math.abs(netTotal).toFixed(2)})`, netTotal >= 0 ? 'ok' : 'err');
+            }
           }
         }
       };
       wsOrder.onerror = () => {
-        if (auto60Timer) clearTimeout(auto60Timer);
         if (closeBtn) closeBtn.style.display = 'none';
         activeCloseFn = null; busy = false;
         note('tradeAlert', '❌ Order WebSocket error', 'err');
@@ -707,11 +739,13 @@ async function execTrade(dir, auto = false) {
 
   busy = true;
   const entry = spot;
-  const startedAt = Date.now();
-  let latestDemoPnl = 0;
   if (auto) { snipes++; refreshSniperBtn(); }
   if (closeBtn) closeBtn.style.display = 'block';
-  note('tradeAlert', `⚡ DEMO ${labelDir} 100x (60s) @ ${entry.toFixed(2)} • TP +$${tradeTP} / SL -$${tradeSL}`, '');
+
+  const isSplit = stk >= 2;
+  const leg1Stk = isSplit ? +(stk / 2).toFixed(2) : stk;
+  const leg2Stk = isSplit ? +(stk - leg1Stk).toFixed(2) : 0;
+  let leg1Sold = false, leg1Pnl = 0, leg2Pnl = 0, beLocked = false;
 
   const finishDemo = (net, reason = 'TP/SL') => {
     clearInterval(timer);
@@ -721,7 +755,7 @@ async function execTrade(dir, auto = false) {
     demoBal = +(demoBal + net).toFixed(2);
     pnl = +(pnl + net).toFixed(2);
     syncWallet();
-    addLog(`DEMO R_10 ${labelDir} 1000x`, net);
+    addLog(`DEMO R_10 ${labelDir} SPLIT`, net);
     refreshStats();
     busy = false;
 
@@ -730,50 +764,44 @@ async function execTrade(dir, auto = false) {
     const max = parseInt($('maxSnipeIn').value, 10) || 10;
     if (armed && (pnl >= tp || pnl <= -sl || snipes >= max)) {
       armed = false; refreshSniperBtn();
-      return note('tradeAlert', `🛑 DEMO SESSION COMPLETE • P/L: $${pnl.toFixed(2)}`, 'ok');
+      return note('tradeAlert', `🛑 SESSION TARGET REACHED • P/L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`, pnl >= 0 ? 'ok' : 'err');
     }
-       if (reason === 'MANUAL') {
-      note('tradeAlert', net >= 0 ? `💰 CLOSED IN PROFIT (+$${net.toFixed(2)})` : `🛑 CLOSED EARLY (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
-    } else if (reason === '60S') {
-      note('tradeAlert', net >= 0 ? `⏱️ 60s WIN (+$${net.toFixed(2)})` : `⏱️ 60s LOSS (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
-    } else {
-      note('tradeAlert', net >= 0 ? `✅ DEMO TP HIT (+$${net.toFixed(2)})` : `❌ DEMO SL HIT (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
-    }
+    note('tradeAlert', net >= 0 ? `✅ SPLIT CLOSED (+$${net.toFixed(2)})` : `❌ SPLIT SL (-$${Math.abs(net).toFixed(2)})`, net >= 0 ? 'ok' : 'err');
   };
 
-  activeCloseFn = () => finishDemo(latestDemoPnl, 'MANUAL');
-
-  let demoBeLocked = false;
-  const beTrigger = +(stk * 0.50).toFixed(2);
-  const beFloor = +(stk * 0.10).toFixed(2);
+  activeCloseFn = () => finishDemo(+(leg1Pnl + leg2Pnl).toFixed(2), 'MANUAL');
 
   const timer = setInterval(() => {
     const pctMove = isLong ? ((spot - entry) / entry) : ((entry - spot) / entry);
-    latestDemoPnl = +(stk * 1000 * pctMove).toFixed(2);
+    if (!leg1Sold) leg1Pnl = +(leg1Stk * 1000 * pctMove).toFixed(2);
+    if (isSplit) leg2Pnl = +(leg2Stk * 1000 * pctMove).toFixed(2);
 
-    if (!demoBeLocked && latestDemoPnl >= beTrigger) demoBeLocked = true;
-    if (latestDemoPnl >= tradeTP) return finishDemo(tradeTP, 'TP/SL');
-    if (demoBeLocked && latestDemoPnl <= beFloor) return finishDemo(beFloor, 'MANUAL');
-    if (!demoBeLocked && latestDemoPnl <= -tradeSL) return finishDemo(-tradeSL, 'TP/SL');
+    if (isSplit) {
+      if (!leg1Sold && leg1Pnl >= +(leg1Stk * 0.50).toFixed(2)) {
+        leg1Sold = true;
+        leg1Pnl = +(leg1Stk * 0.50).toFixed(2);
+        beLocked = true;
+      }
+      if (!leg1Sold && leg1Pnl <= -leg1Stk && leg2Pnl <= -leg2Stk) {
+        return finishDemo(-stk, 'TP/SL');
+      }
+      if (leg1Sold && beLocked && leg2Pnl <= 0.05) {
+        return finishDemo(+(leg1Pnl + 0.05).toFixed(2), 'BE');
+      }
+      if (leg1Sold && leg2Pnl >= +(leg2Stk * 2).toFixed(2)) {
+        return finishDemo(+(leg1Pnl + leg2Stk * 2).toFixed(2), 'TP/SL');
+      }
+    } else {
+      if (!beLocked && leg1Pnl >= +(leg1Stk * 0.50).toFixed(2)) beLocked = true;
+      if (leg1Pnl >= tradeTP) return finishDemo(tradeTP, 'TP/SL');
+      if (beLocked && leg1Pnl <= +(leg1Stk * 0.10).toFixed(2)) return finishDemo(+(leg1Stk * 0.10).toFixed(2), 'BE');
+      if (!beLocked && leg1Pnl <= -tradeSL) return finishDemo(-tradeSL, 'TP/SL');
+    }
 
-    const beTag = demoBeLocked ? ` • 🛡️ BE +$${beFloor}` : '';
-    note('tradeAlert', `⚡ ${labelDir} @ ${entry.toFixed(2)} • Live P/L: ${latestDemoPnl >= 0 ? '+' : ''}$${latestDemoPnl.toFixed(2)}${beTag} (TP +$${tradeTP})`, latestDemoPnl >= 0 ? 'ok' : '');
-    }, 400);
-}
-
- // True Wilder's RSI-7
- 
-function getRsi(period = 7) {
-  if (bars.length <= period) return 50
-                                           ;
-  let gains = 0, losses = 0;
-  for (let i = bars.length - period; i < bars.length; i++) {
-    const diff = bars[i].c - bars[i - 1].c;
-    if (diff >= 0) gains += diff;
-    else losses -= diff;
-  }
-  if (losses === 0) return 100;
-  const rs = (gains / period) / (losses / period);
+    const totalLive = +(leg1Pnl + leg2Pnl).toFixed(2);
+    const tag = isSplit
+      ? (leg1Sold ? ` • 💰 +$${leg1Pnl.toFixed(2)} BANKED | 🛡️ RUNNER AT BE` : ` • 50/50 SPLIT`)
+      : (beLocked ? ` • 🛡️ BE LOCKED` : ''); osses / period);
   return +(100 - (100 / (1 + rs))).toFixed(1);
 }
 
@@ -1078,3 +1106,5 @@ setTimeout(refreshLiveBalance, 1500);
 
 
 
+
+ 
