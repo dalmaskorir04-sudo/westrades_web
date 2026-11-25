@@ -983,8 +983,9 @@ function evaluateStrategy(ema20, rsi) {
   }
 
     const cooldownLeft = Math.max(0, Math.ceil((45000 - (Date.now() - lastTradeClosedAt)) / 1000));
-  const bullPullbackEntry = m15Bull && volOk && cooldownLeft === 0 && upTrend && curBar && spot > curBar.o && rsi >= 36 && rsi <= 46 && spot > prevSpot;
-  const bearPullbackEntry = m15Bear && volOk && cooldownLeft === 0 && dnTrend && curBar && spot < curBar.o && rsi >= 54 && rsi <= 64 && spot < prevSpot;
+      const bullPullbackEntry = riseReady && cooldownLeft === 0;
+    const bearPullbackEntry = fallReady && cooldownLeft === 0;
+ 
 
   if (bullPullbackEntry) {
     $('sigTxt').textContent = `⚡ SNIPER MULT UP • M15+1M Pullback (RSI ${rsi})`;
