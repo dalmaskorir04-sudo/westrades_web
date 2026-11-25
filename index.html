@@ -1041,7 +1041,8 @@ function connectRealDeriv() {
         spot = bars[bars.length - 1].c;
         prevSpot = bars[bars.length - 2] ? bars[bars.length - 2].c : spot;
         const ema20 = renderChart();
-        const rsi = getRsi(7);
+            const rsi = getRsi(bars, 7);
+       
         $('spotTxt').textContent = spot.toFixed(2);
         $('rsiTxt').textContent = rsi.toFixed(1);
         evaluateStrategy(ema20, rsi);
@@ -1062,7 +1063,8 @@ function connectRealDeriv() {
           $('spotTxt').textContent = spot.toFixed(2);
           $('spotTxt').style.color = spot >= prevSpot ? '#10b981' : '#ef4444';
           const ema20 = renderChart();
-          const rsi = getRsi(7);
+             const rsi = getRsi(bars, 7);
+       
           $('rsiTxt').textContent = rsi.toFixed(1);
           evaluateStrategy(ema20, rsi);
         }
