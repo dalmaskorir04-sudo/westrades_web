@@ -799,11 +799,25 @@ async function execTrade(dir, auto = false) {
     }
 
     const totalLive = +(leg1Pnl + leg2Pnl).toFixed(2);
-    const tag = isSplit
-      ? (leg1Sold ? ` • 💰 +$${leg1Pnl.toFixed(2)} BANKED | 🛡️ RUNNER AT BE` : ` • 50/50 SPLIT`)
-      : (beLocked ? ` • 🛡️ BE LOCKED` : ''); osses / period);
-  return +(100 - (100 / (1 + rs))).toFixed(1);
+        const tag = isSplit ? (leg1Sold ? ' • BANKED + RUNNER BE' : ' • 50/50 SPLIT') : (beLocked ? ' • BE' : '');
+    note('tradeAlert', labelDir + ' @ ' + entry.toFixed(2) + ' | P/L: $' + totalLive + tag, totalLive >= 0 ? 'ok' : '');
+  }, 400);
 }
+
+// True Wilder's RSI-7
+function calcRSI(values, period = 7) {
+  if (values.length < period + 1) return 50;
+  let gains = 0, losses = 0;
+  for (let i = values.length - period; i < values.length; i++) {
+    const diff = values[i] - values[i - 1];
+    if (diff >= 0) gains += diff;
+    else losses -= diff;
+  }
+  if (losses === 0) return 100;
+  const rs = (gains / period) / (losses / period);
+  return +(100 - (100 / (1 + rs))).toFixed(1);
+
+ }
 
 // True Exponential Moving Average (EMA)
 function calcEMA(values, period) {
